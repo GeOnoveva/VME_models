@@ -1,0 +1,91 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Intro
+
+inputs: (1) resp (in intermediate folder) (2) pred (in intermediate folder)
+workflow: the marvid sections (aka sample info) object is generated here
+outputs: v
+
+# Inputs
+```{r}
+# get resp (read)
+
+# get pred (load)
+
+```
+
+# Libraries
+```{r}
+library(rgdal)
+library(dplyr)
+library(raster)
+library(qdapTools)
+```
+
+# Get coordinates of samples
+```{python}
+import requests
+
+API_URL = "http://marvid-staging.hi.no:8092/query/video_lines"
+OUTPUL_FILEPATH = "C:\\Users\\genoveva\\Downloads\\marvid_sections.csv"
+DELIMITER = ","
+CSV_HEADER = DELIMITER.join(["video line", "section", "mean latitude", "mean longitude"])
+
+api_response = requests.get(API_URL).json() 
+output_strings = [CSV_HEADER] 
+for vl_number in sorted(api_response.keys()):
+    vl = api_response[vl_number]
+    for section in sorted(vl["sections"]):
+        mean_lat = str(vl["sections"][section]["mean_lat"])
+        mean_lon = str(vl["sections"][section]["mean_lon"])
+        output_strings.append(DELIMITER.join([vl_number, section, mean_lat, mean_lon]))
+
+with open(OUTPUL_FILEPATH, "w") as output_file:
+    output_file.write("\n".join(output_strings))n
+```
+
+
+# Make sample info
+```{r}
+# sample_info <- read.csv(file.path(Data, "marvid_sections.csv"))
+# sample_info <- sample_info %>% makesampid
+```
+
+# Make spatial object
+```{r}
+resp_spat1 <- resp %>% mutate(mean_long=as.numeric(pull(
+                                dplyr::filter(data.frame(lookup(SampID,select(sample_info, c(SampID, mean.longitude)), missing = NULL)), 
+                                                      !duplicated(data.frame(qdapTools::lookup(SampID,select(sample_info, c(SampID, mean.longitude)), missing = NULL)))
+                                                       ))),
+                             mean_lat=as.numeric(pull(
+                               dplyr::filter(data.frame(lookup(SampID,select(sample_info, c(SampID, mean.latitude)), missing = NULL)), 
+                                                      !duplicated(data.frame(qdapTools::lookup(SampID,select(sample_info, c(SampID, mean.latitude)), missing = NULL)))
+                                                       )))) %>%
+            filter(!is.na(mean_long))
+resp_spat <- SpatialPointsDataFrame(select(resp_spat1, c(mean_long, mean_lat)), select(resp_spat1, c(SampID,tot_rich, tot_dens, vmeind_density)))  
+                      #%>% utmize
+
+writeOGR(resp_spat, savepath, paste("resp_spat", vme), driver = "ESRI Shapefile")
+
+# make resp have the same number of rows as resp_spat:
+
+resp <- resp %>% filter(SampID%in%resp_spat@data$SampID)
+```
+
+
+# Extract environmental data to points
+```{r}
+e <- raster::extract(pred, resp_spat)
+v <- cbind(resp,e)
+# generate random data if needed
+v
+```
+
+# Save outputs
+```{r}
+rm(resp_spat1)
+write.csv(v, file.path(savepath, "v.csv"), row.names = FALSE)
+```
