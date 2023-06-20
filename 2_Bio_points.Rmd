@@ -1,0 +1,79 @@
+---
+title: "Biological composition of points"
+output: html_notebook
+---
+
+# Intro
+
+Note to self: need to summarize by video quality in this script!
+
+inputs:  (1) MarVid report (aka "species_abundance.csv") (in downloads folder) (2) Taxonary (on HI onedrive folder)
+Workflow: edit the vme of interest
+outputs: response data (aka "resp") as a simple dataframe. Includes the density of all vme indicators for the selected vme as well as total richness and total abundance.
+
+# Libraries
+```{r}
+library(dplyr)
+#install_github("trinker/qdapTools")
+library(qdapTools)
+library(readxl)
+library(tidyr)
+```
+
+# Load data
+```{r}
+#data <- read.csv(file.path(Data, "species_abundance.csv"), sep = "|")
+#data <- data %>% makesampid
+
+taxonary <- read_xlsx(file.path(SharedData,"Taxonary.xlsx"), sheet = 1) # needs to be closed
+```
+
+# Lump detailed identifications with their corresponding taxon, and filter out generic/broad taxa
+```{r}
+# lump
+
+# data <- data %>% mutate(taxon=lookup(taxon, data.frame(select(taxonary, c(Reference_List, Analysis_name))), missing=NULL)) %>%
+#   group_by(taxon, SampID) %>%
+#   summarize(density = sum(abundance.Nper100m.2)) %>%
+#   select(SampID, taxon, density)
+# 
+# filter out generic taxa
+
+head(data)
+```
+
+# Derive VME data
+Example: Burgos et al classification
+
+## available VME indicators
+```{r}
+print(unique(taxonary$VME_Burgos_etal_2020))
+```
+## Do they have the same environmental niche, approximately? (Jonatan)
+Or are they within the same biotope, at least? Need to answer yes to one of these two questions before going ahead. If answer is no, then cut indicators out
+```{r}
+# set vme
+vme <- "Hard bottom sponge aggregations"
+
+```
+
+## Filter data by VME indicators
+```{r}
+#derive response
+resp1 <- data %>% group_by(SampID) %>%
+  summarize(tot_rich = length(SampID), tot_dens = sum(density))
+  
+  
+resp2 <- data %>% filter(taxon%in%taxonary$Reference_List[which(taxonary$VME_Burgos_etal_2020==vme)]) %>%
+  group_by(SampID) %>%
+  summarize(vmeind_density = sum(density))
+
+resp <- left_join(resp1,resp2) %>% mutate(vmeind_density=replace_na(vmeind_density,0))
+resp
+```
+# Save output
+```{r}
+rm(resp1, resp2)
+write.csv(resp, file.path(savepath, "resp.csv"))
+```
+
