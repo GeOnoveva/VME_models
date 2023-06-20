@@ -19,7 +19,7 @@ library(RCurl)
 
 # Load and plot the modelling area.
 ```{r}
-mask <- readOGR("./Data/BaseLayers/mask.shp", verbose = FALSE)
+mask <- readOGR("../../Data/BaseLayers/mask.shp", verbose = FALSE)
 mask <- gUnaryUnion(mask)
 plot(mask)
 ```
