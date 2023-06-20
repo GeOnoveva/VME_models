@@ -1,0 +1,29 @@
+---
+title: "Area of Applicability and model uncertainty"
+output: html_notebook
+---
+
+# Intro
+Inputs: pred brick ("pred"), final model ("model")
+
+# Libraries
+```{r}
+library(CAST)
+```
+# Area of applicability
+```{r}
+aoa <- aoa(pred, model)
+```
+
+
+# Quantile regression for uncertainty estimation
+Packages and tutorials:
+https://cran.r-project.org/web/packages/quantregForest/quantregForest.pdf
+https://www.randomforestsrc.org/articles/getstarted.html
+
+Scientific articles:
+https://www.sciencedirect.com/science/article/pii/S1364815221001821
+
+```{r}
+
+```
