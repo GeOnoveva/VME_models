@@ -1,0 +1,59 @@
+---
+title: "Build predictor stack"
+output: html_notebook
+---
+# Intro
+
+inputs: nice to have a "mask" shapefile that defines the modelling area, but not strictly necessary because environmental layers were all cropped and aligned when they were put in the ftp (MD does this)
+outputs: the predictor brick ("pred")
+
+# Libraries
+```{r}
+library(raster)
+library(rgdal)
+library(rgeos)
+#install_github("skgrange/threadr")
+library(threadr)
+library(RCurl)
+```
+
+# Load and plot the modelling area.
+```{r}
+mask <- readOGR("./Data/BaseLayers/mask.shp", verbose = FALSE)
+mask <- gUnaryUnion(mask)
+plot(mask)
+```
+# Read in NGU Data
+```{r}
+files <- list_files_ftp(
+  ftp_url,
+  credentials = "havforsk:Havf8776",
+  sleep = NA,
+  sort = FALSE,
+  verbose = FALSE
+)
+x <- stack()
+for (i in (seq_along(files)[-length(seq_along(files))])) {
+  print(i)
+  tmpraster <- raster(paste0(ftp_filepath,
+                            paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""))
+  )
+
+  x <- stack( x , tmpraster, layers= substr(paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""),
+              2,
+              nchar(paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""))-4))
+  
+}
+pred <- x
+rm(x, tmpraster)
+pred
+```
+# Save outputs
+```{r}
+
+# save whole workspace (writing pred to tif will delete layer names, which is a pain...)
+save.image(file="1_Predictors_out.RData")
+
+```
+
+
