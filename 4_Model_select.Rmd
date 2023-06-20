@@ -1,0 +1,154 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+# Intro
+inputs: v
+outputs: final model ("modelfin")
+Need to keep an eye on this: https://link.springer.com/article/10.1007/s11004-021-09946-w
+
+# Libraries
+```{r}
+library(groupdata2)
+library(party)
+library(BAMMtools)
+library(spm)
+library(VSURF)
+library(tidyverse)
+library(lattice)
+```
+
+# Inputs
+```{r}
+# get v (read)
+# v <- read.csv(file.path(savepath, "v.csv"))
+# str(v)
+```
+
+# Full model: conditional inference forest
+```{r}
+data.controls <- cforest_unbiased(ntree=1000, mtry=3)
+set.seed(2)
+fmla0 <- as.formula(paste("vmeind_density ~ ", 
+                         paste(colnames(v)[(which(colnames(v)=="SampID")+4):
+                         length(colnames(v))], collapse= "+"))) # all predictors
+model0 <- cforest(fmla0,
+                      data=v, # all observations 
+                      control = data.controls)
+
+model01 <- cforest(fmla0,
+                       data=filter(v, complete.cases(v)), # all complete observations 
+                       control = data.controls)
+model0
+```
+
+# Variable importance
+takes ~24h 
+```{r}
+# varimp0 <- varimp(model01, conditional=TRUE)
+# dotplot(sort(varimp0), panel=function (x,y){
+#   panel.dotplot(x, y, col='darkblue', pch=16, cex=1.1)
+#   panel.abline(v=abs(min(varimp0)), col = 'red', lty='longdash', lwd=2)
+#   panel.abline(v=0, col='blue')
+#   }
+# )
+```
+# Variable selection (this uses Breiman Random Forests to calculate varimp)
+hence, it uses only numeric variables
+```{r}
+
+v <- v %>% filter(complete.cases(.))
+
+# maybe rescale variables first, the way Thijs does in grts?
+x <- v %>% select(where(is.numeric))
+x <- x %>% select(4:dim(x)[2]) %>% rescl5_260
+#x <- v[,5:dim(v)[2]]
+
+step1 <- VSURF_thres(x=x,y=v[,4])
+step2 <- VSURF_interp(x=x,y=v[,4], vars = step1$varselect.thres)
+selvar <- VSURF_pred(x=x,
+                     y=v[,4],
+                     err.interp =step2$err.interp,
+                     varselect.interp = step2$varselect.interp)
+selvarnames <- colnames(x)[selvar$varselect.pred]
+#selvarnames <- colnames(x)[step2$varselect.interp]
+selvarnames
+```
+
+# Final model
+```{r}
+# fit model using subset of variables, unless decided to use all variables because it doesn't matter (e.g. https://stats.stackexchange.com/questions/168622/why-is-multicollinearity-not-checked-in-modern-statistics-machine-learning)
+
+fmla1 <- as.formula(paste("vmeind_density ~ ", 
+                         paste(selvarnames, collapse= "+"))) # sel var
+#fmla1 <- as.formula(paste("vmeind_density ~ ", 
+#                         paste(c(selvarnames, "bathy"), collapse= "+"))) # optionally specify a different set of predictors for the final model; it won't negatively affect predictions
+
+# fmla1 <- as.formula(paste("vmeind_density ~ ", 
+#                          paste(c("BO22_carbonphytomean_bdmean", "bathy", "sand", "mud", "BO22_carbonphytorange_ss", "Tsd_Robinson"), collapse= "+")))
+
+fmla1
+```
+
+# Split data for model testing
+split the data into two partitions where (1) video lines are kept together and (2) the testing data is biased towards intermediate to high-density observations
+```{r}
+n<-3 # n classes to stratify the response variable into
+keep=0.25 # proportion of observations in the low density class that will be treated normally
+p=0.5 # overall proportion of the dataset that should be used for testing the model
+
+# video.line is single column. extract or lookup from sample info
+video.line <- as.character(lookup(v$SampID, select(sample_info, section, video.line), sample_info$video.line))
+
+v_test <- stratisplit(v, n, keep, p, as.factor(video.line))[[1]]
+v_train <- stratisplit(v, n, keep, p, as.factor(video.line))[[2]]
+
+rbind(hist(log(v_train$vmeind_density)), hist(log(v_test$vmeind_density)))
+
+```
+
+
+
+
+# Model evaluation
+Using the variables that would have been selected by the varimp plot above makes VE even lower (tried on shallow seapens). Getting about 5%
+```{r}
+model1 <- cforest(fmla0,
+                      data=v_train, # test observations 
+                      control = data.controls)
+
+predicted <- treeresponse(model1, newdata=v_test, OOB=TRUE)
+observed <- v_test %>%
+  select(vmeind_density)
+vecv <- vecv(pull(observed),pull(data.frame(unlist(predicted)))) # variance explained by cross-validation, conservative estimate to report
+vecv
+```
+# More model evaluation: R square
+```{r}
+y=observed
+oob.pred<-predicted
+residual<-y-data.frame(unlist(oob.pred))
+mse<-sum(residual^2)/length(y)
+
+pseudo.R2<-(1-mse)/var(y) # it yielded pseudo R^2 = 0.4327, so 43.27% of explained variance
+# n<-12
+# adj.R2<-1-(1-pseudo.R2)*((length(y)-1)/(length(y)-n-1)) # where n = number of predictors in the model
+pseudo.R2
+```
+
+# Final model
+```{r}
+fmlafin <- fmla1
+
+modelfin <- cforest(fmlafin,
+                      data=v, # all observations 
+                      control = data.controls)
+modelfin
+```
+
+# Outputs
+```{r}
+# for the metadata report I need: the final model formula, the vecv, a list of the SampID in the test dataset
+rm(adj.R2, data.controls, e, model0, model1, observed, oob.pred, predicted, residual, step1, step2, v_train, x, y)
+save.image(file="4_Model_select_out.RData")
+```
