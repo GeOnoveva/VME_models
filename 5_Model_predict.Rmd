@@ -1,0 +1,53 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Intro
+
+This script can be run as soon as environmental layers for new areas are available, i.e. without the MarVid data yet ready. Requires running "1_Predictors" first, and for the names not to change
+
+
+# Libraries
+```{r}
+library(raster)
+library(rgdal)
+```
+
+# Select model
+```{r}
+model <- modelfin
+```
+
+# Predictions
+```{r}
+# list of factor levels
+
+#f1 <- levels(v$landscape)
+#f2 <- levels(v$terclass)
+
+#f <- list(f1,f2)
+
+#names(f) <-c("landscape","terclass")
+
+predfun <- function(m, d, ...) predict(m, newdata=d, ...)
+
+#pc <- raster::predict(pred, model, OOB=TRUE, factors=f, fun=predfun)
+
+## same, in parallel
+
+beginCluster()
+pc <- clusterR(pred,
+               predict,
+               args=list(model=model,
+                         OOB=TRUE,
+                         #factors=f,
+                         fun=predfun,
+                         index=1:2)) # index=1?
+pc <- pc[[1]]
+```
+
+# Save output
+```{r}
+#writeRaster(pc,file.path(outdatapath, paste0("Prediction", response, ".tif", collapse = NULL)), options="INTERLEAVE=BAND", overwrite=TRUE)
+```
