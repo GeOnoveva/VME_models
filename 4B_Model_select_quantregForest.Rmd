@@ -1,0 +1,28 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Libraries
+```{r}
+library(quantregForest)
+```
+```{r}
+
+# train
+Ytrain = v_train %>%
+  select(vmeind_density) %>% pull
+Xtrain <- v_train %>% select(6:dim(v_train)[2])
+  #%>% rescl5_260
+qrf <- quantregForest(x=Xtrain, y=Ytrain)
+
+Xtest = v_test %>% select(6:dim(v_test)[2])
+
+predicted <- predict(qrf, Xtest, what=mean)
+observed <- v_test %>%
+  select(vmeind_density)
+idx <- which(is.na(pull(data.frame(unlist(predicted)))))
+vecv <- vecv(pull(observed)[-idx],pull(data.frame(unlist(predicted)))[-idx]) # variance explained by cross-validation, conservative estimate to report
+vecv
+```
+
