@@ -1,0 +1,11 @@
+---
+title: "VME-ness of biotopes"
+output: html_notebook
+---
+
+# Intro
+
+inputs: biotope classification, taxonary?
+outputs: biotope classification with more columns, list of relevant biotopes
+
+Two approaches: association between VME indicators and biotopes, and Bex's ranking method
