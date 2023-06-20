@@ -1,0 +1,20 @@
+---
+title: "Metadata"
+output: pdf_document
+date: "`r Sys.Date()`"
+---
+
+# Introduction
+
+Here is the summary for the model blah blah
+
+# Environment
+```{r}
+# load environment
+load("4_Model_select_out.RData")
+```
+
+# Report model fit
+```{r}
+vecv
+```
