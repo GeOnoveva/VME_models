@@ -38,10 +38,10 @@ for (i in (seq_along(files)[-length(seq_along(files))])) {
   tmpraster <- raster(paste0(ftp_filepath,
                             paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""))
   )
-
-  x <- stack( x , tmpraster, layers= substr(paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""),
+  names(tmpraster) <- substr(paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""),
               2,
-              nchar(paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""))-4))
+              nchar(paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""))-4)
+  x <- stack( x , tmpraster)
   
 }
 pred <- x
