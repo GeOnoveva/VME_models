@@ -68,7 +68,7 @@ resp_spat1 <- resp %>% mutate(mean_long=as.numeric(pull(
 resp_spat <- SpatialPointsDataFrame(select(resp_spat1, c(mean_long, mean_lat)), select(resp_spat1, c(SampID,tot_rich, tot_dens, vmeind_density)))  
                       #%>% utmize
 
-writeOGR(resp_spat, savepath, paste("resp_spat", vme), driver = "ESRI Shapefile")
+writeOGR(resp_spat, savepath, paste("resp_spat", vme), driver = "ESRI Shapefile", overwrite_layer = TRUE)
 
 # make resp have the same number of rows as resp_spat:
 
