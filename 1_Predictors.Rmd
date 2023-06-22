@@ -45,6 +45,7 @@ for (i in (seq_along(files)[-length(seq_along(files))])) {
   
 }
 pred <- x
+pred <- dropLayer(pred, which(names(pred)%in%gsub(".tif", "", list.files("G:\\GIS_Data\\EnvironmentalLayersAdditional"))))
 rm(x, tmpraster)
 pred
 ```
