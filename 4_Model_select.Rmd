@@ -23,11 +23,14 @@ library(lattice)
 # get v (read)
 # v <- read.csv(file.path(savepath, "v.csv"))
 # str(v)
+
+v <- v %>% 
+      mutate_at(vars(  landscape, sedclass, seddan, sedmil    ), factor)
 ```
 
 # Full model: conditional inference forest
 ```{r}
-data.controls <- cforest_unbiased(ntree=1000, mtry=3)
+data.controls <- cforest_unbiased(ntree=1000, mtry=10)
 set.seed(2)
 fmla0 <- as.formula(paste("vmeind_density ~ ", 
                          paste(colnames(v)[(which(colnames(v)=="SampID")+4):
@@ -43,7 +46,7 @@ model0
 ```
 
 # Variable importance
-takes ~24h 
+takes ~24h with ~12 predictors
 ```{r}
 # varimp0 <- varimp(model01, conditional=TRUE)
 # dotplot(sort(varimp0), panel=function (x,y){
