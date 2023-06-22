@@ -23,12 +23,14 @@ model <- modelfin
 ```{r}
 # list of factor levels
 
-#f1 <- levels(v$landscape)
-#f2 <- levels(v$terclass)
+f1 <- levels(v$landscape)
+f2 <- levels(v$sedclass)
+f3 <- levels(v$seddan)
+f4 <- levels(v$sedmil)
 
-#f <- list(f1,f2)
+f <- list(f1,f2, f3, f4)
 
-#names(f) <-c("landscape","terclass")
+names(f) <-c("landscape", "sedclass", "seddan", "sedmil" )
 
 predfun <- function(m, d, ...) predict(m, newdata=d, ...)
 
@@ -41,7 +43,7 @@ pc <- clusterR(pred,
                predict,
                args=list(model=model,
                          OOB=TRUE,
-                         #factors=f,
+                         factors=f,
                          fun=predfun,
                          index=1:2)) # index=1?
 pc <- pc[[1]]
