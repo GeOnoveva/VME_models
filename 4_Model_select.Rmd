@@ -138,6 +138,12 @@ pseudo.R2<-(1-mse)/var(y) # it yielded pseudo R^2 = 0.4327, so 43.27% of explain
 # adj.R2<-1-(1-pseudo.R2)*((length(y)-1)/(length(y)-n-1)) # where n = number of predictors in the model
 pseudo.R2
 ```
+# RFsp
+https://github.com/thengl/GeoMLA/blob/master/RF_uncertainty/Workshop_uncertainty.md
+```{r}
+
+```
+
 
 # Final model
 ```{r}
