@@ -1,7 +1,7 @@
 
 library(dplyr)
 
-old_data <- read.csv("U:\\Mareano\\VIDEOLAB\\VIDEO DATA\\200m_scale_species_by_sample\\Data_Delivery_2023\\inputs\\species_densities.csv")
+old_data <- read.csv("U:\\Mareano\\VIDEOLAB\\VIDEO DATA\\200m_scale_species_by_sample\\Data_Delivery_2024\\species_densities.csv")
 
 old_data <- old_data %>% rename(taxon=clean_taxonomy, density = density_n100m2) %>% select(SampID, taxon, density)
 
