@@ -78,8 +78,8 @@ resp <- resp %>% filter(SampID%in%resp_spat@data$SampID)
 
 # Extract environmental data to points
 ```{r}
-e <- raster::extract(pred, resp_spat)
-v <- cbind(resp,e)
+e <- raster::extract(pred, resp_spat, sp=TRUE)
+v <- left_join(select(resp, SampID),data.frame(e), by="SampID")
 # generate random data if needed
 v
 ```
