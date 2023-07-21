@@ -1,3 +1,4 @@
+
 ---
 title: "R Notebook"
 output: html_notebook
@@ -100,6 +101,9 @@ n<-3 # n classes to stratify the response variable into
 keep=0.25 # proportion of observations in the low density class that will be treated normally
 p=0.5 # overall proportion of the dataset that should be used for testing the model
 
+v <- v %>% filter(complete.cases(.))
+
+
 # video.line is single column. extract or lookup from sample info
 video.line <- as.character(lookup(v$SampID, select(sample_info, section, video.line), sample_info$video.line))
 
@@ -140,6 +144,8 @@ pseudo.R2
 ```
 # RFsp
 https://github.com/thengl/GeoMLA/blob/master/RF_uncertainty/Workshop_uncertainty.md
+https://stackoverflow.com/questions/73559636/unable-to-install-gsif-package-in-r
+
 ```{r}
 
 ```
