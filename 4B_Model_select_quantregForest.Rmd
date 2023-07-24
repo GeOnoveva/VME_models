@@ -7,6 +7,8 @@ output: html_notebook
 ```{r}
 library(quantregForest)
 ```
+# Using the quantregForest library
+
 ```{r}
 
 # train
@@ -24,5 +26,42 @@ observed <- v_test %>%
 idx <- which(is.na(pull(data.frame(unlist(predicted)))))
 vecv <- vecv(pull(observed)[-idx],pull(data.frame(unlist(predicted)))[-idx]) # variance explained by cross-validation, conservative estimate to report
 vecv
+```
+# Another approach (using ranger)
+
+```{r}
+library(ranger)
+qrf2<-ranger(fmla0, v_train, mtry=5,  min.node.size=2, sample.fraction=0.9930754, num.trees=500, # these parameters need to have been fined-tuned on a previous step
+                   importance="impurity", seed=1, quantreg= TRUE)
+qrf2
+```
+
+```{r}
+xl <- as.list(ranger::importance(qrf2))
+print(t(data.frame(xl[order(unlist(xl), decreasing=TRUE)[1:10]])))
+```
+
+```{r}
+
+quantiles = c((1-.682)/2, 0.5, 1-(1-.682)/2)
+
+vme.qrf2 <- predict(qrf2, cbind(
+  #swiss.dist0@data, 
+  v_test), 
+                     type="quantiles", quantiles=quantiles)$predictions
+## now more computational...
+v_test$vme.qrf2pr = vme.qrf2[,2]
+## s.d. of the prediction error:
+v_test$vme.qrf2var = (vme.qrf2[,3]-vme.qrf2[,1])/2
+head(v_test)
+```
+```{r}
+predicted <- v_test$vme.qrf2pr
+observed <- v_test %>%
+  select(vmeind_density)
+
+vecv <- vecv(pull(observed),pull(data.frame(unlist(predicted)))) # variance explained by cross-validation, conservative estimate to report
+vecv
+
 ```
 
