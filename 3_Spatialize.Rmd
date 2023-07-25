@@ -11,9 +11,9 @@ outputs: v
 
 # Inputs
 ```{r}
-# get resp (read)
+resp <- read.csv(file.path(savepath, "resp.csv"))
 
-# get pred (load)
+load("G:/R_projects/VH_MarVid/code/VME_models/Intermediate_objects/1_Predictors_out.RData")
 
 ```
 
