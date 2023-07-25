@@ -53,7 +53,8 @@ pred
 ```{r}
 
 # save whole workspace (writing pred to tif will delete layer names, which is a pain...)
-save.image(file="1_Predictors_out.RData")
+writeRaster(pred, filename=file.path(savepath,"pred.tif"), options="INTERLEAVE=BAND", overwrite=TRUE)
+save.image(file=file.path(savepath, "1_Predictors_out.RData"))
 
 ```
 
