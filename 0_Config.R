@@ -18,7 +18,7 @@ ftp_filepath <- paste0(strsplit(ftp_url, "\\//")[[1]][1], "//havforsk:Havf8776@"
                    strsplit(ftp_url, "\\//")[[1]][2])#insert the credentials into the url
 
 ## Path to folder where to save intermediate objects created along the way and needed in subsequent steps (you need to create this folder if it doesn't exist)
-savepath <- "..\\..\\Intermediate_objects"
+savepath <- "Intermediate_objects"
 
 ## Final products to be shared:
 outpath <- "U:\\Mareano\\Sårbare_habitater_kart"
@@ -132,6 +132,8 @@ threspol <- function(thresvalue, raster, min.area, max.hole){
 }
 
 ## function to derive buffer distances for a set of points (adapted from T Hengl)
+setGeneric("buffer.dist", function(observations, predictionDomain, classes, width, ...) 
+  standardGeneric("buffer.dist") )
 
 setMethod("buffer.dist", signature(observations = "SpatialPointsDataFrame", predictionDomain = "SpatialPixelsDataFrame"), function(observations, predictionDomain, classes, width, ...){
   if(missing(width)){ width <- sqrt(areaSpatialGrid(predictionDomain)) }
