@@ -18,3 +18,20 @@ sample_info <- old_sample_info
 # IMPORTANT NOTE: I may have to re-generate sample_info and species_densities (from the make matrix generalized notebook!!)
 
 rm(old_data, old_sample_info)
+
+
+## fake spatial pixels data frame (rather, incomplete)
+
+i<-2
+
+tmpraster <- raster(paste0(ftp_filepath,
+                           paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""))
+)
+names(tmpraster) <- substr(paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""),
+                           2,
+                           nchar(paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""))-4)
+
+tmpraster[]<- values(tmpraster)[pred@grid.index]
+pred <- as(tmpraster, "SpatialPixelsDataFrame")
+
+pred$BO22_carbonphytoltmax_bdmean<-values(tmpraster)[pred@grid.index]
