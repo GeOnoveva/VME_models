@@ -64,4 +64,27 @@ vecv <- vecv(pull(observed),pull(data.frame(unlist(predicted)))) # variance expl
 vecv
 
 ```
+# Whole mapping area
+```{r}
+crs(resp_spat) <- crs("+proj=utm + zone=33 + datum=WGS84 + units=m + no_defs")
+ov2 = over(y=pred, x=resp_spat)  # same as extract
+```
+
+
+```{r}
+resp.dist0 <-buffer.dist(resp_spat["vmeind_density"], 
+                                 pred[1], as.factor(1:nrow(resp_spat))) 
+## takes 1+ mins!
+ov.resp = over(resp_spat["vmeind_density"], resp.dist0)
+sw.dn0 <- paste(names(swiss.dist0), collapse="+")
+fmla01 <- as.formula(paste("vmeind_density ~ ", 
+                           sw.dn0, 
+                           " + ",
+                           xxxxxxxxxxxxxx)) # names of pred@data with +'s in between
+fmla0
+ov.resp <- over(resp_spat["vmeind_density"], pred[1:2])
+sw.rm = do.call(cbind, list(resp_spat@data["vmeind_density"], ov.rain
+                            , ov.rain
+                            ))
+```
 
