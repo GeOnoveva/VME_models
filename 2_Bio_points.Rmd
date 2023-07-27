@@ -25,7 +25,7 @@ library(tidyr)
 #data <- read.csv(file.path(Data, "species_abundance.csv"), sep = "|")
 #data <- data %>% makesampid
 
-taxonary <- read_xlsx(file.path(SharedData,"Taxonary.xlsx"), sheet = 1) # needs to be closed
+taxonary <- read_xlsx(file.path(Data,"Taxonary.xlsx"), sheet = 1) # needs to be closed
 ```
 
 # Lump detailed identifications with their corresponding taxon, and filter out generic/broad taxa
@@ -71,9 +71,18 @@ resp2 <- data %>% filter(taxon%in%taxonary$Reference_List[which(taxonary$VME_Bur
 resp <- left_join(resp1,resp2) %>% mutate(vmeind_density=replace_na(vmeind_density,0))
 resp
 ```
+
+## Aggregate to whole video line and calculate sd
+```{r}
+respw <- left_join(resp, sample_info) %>% group_by(video.line) %>%
+  summarize(mean_rich = mean(tot_rich), mean_dens = mean(tot_dens), sd_dens = sd(tot_dens))
+head(respw)
+```
+
 # Save output
 ```{r}
 rm(resp1, resp2)
 write.csv(resp, file.path(savepath, "resp.csv"))
 ```
+
 
