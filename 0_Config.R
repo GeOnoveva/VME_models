@@ -1,16 +1,16 @@
 
-# Remember to wipe the environment when running from the top!
+## Remember to wipe the environment when running from the top!
 
 rm(list = ls(all.names = TRUE)) #will clear all objects includes hidden objects.
 gc()
 
 # Paths:
 
-## Path to local downloads folder, where MarVid reports get saved
-Data <- "C:\\Users\\genoveva\\Downloads"
+## Path to data folder on network drive:
+Data <- "~/R_projects/VH_MarVid/Data"
 
-## Path to HI OneDrive folder, where Taxonary resides
-SharedData <- "C:\\Users\\genoveva\\Havforskningsinstituttet\\Video analysis lab - Reference List\\"
+## Path to HI OneDrive folder, where Taxonary normally resides (only accessible when working from desktop RStudio)
+#SharedData <- "C:\\Users\\genoveva\\Havforskningsinstituttet\\Video analysis lab - Reference List\\"
 
 ## Path to ftp site, where environmental layers (already cropped and aligned) reside
 ftp_url <- "ftp://ftp2.ngu.no/toGeno/EnvLayersNiN2022/all"
@@ -18,10 +18,10 @@ ftp_filepath <- paste0(strsplit(ftp_url, "\\//")[[1]][1], "//havforsk:Havf8776@"
                    strsplit(ftp_url, "\\//")[[1]][2])#insert the credentials into the url
 
 ## Path to folder where to save intermediate objects created along the way and needed in subsequent steps (you need to create this folder if it doesn't exist)
-savepath <- "Intermediate_objects"
+savepath <- "~/R_projects/VH_MarVid/Intermediate_objects"
 
 ## Final products to be shared:
-outpath <- "U:\\Mareano\\Sårbare_habitater_kart"
+outpath <- "~/R_projects/VH_MarVid/Results"
 
 # Functions:
 
@@ -69,7 +69,7 @@ rescl5_260 <- function(df)
   rs5_260
 }
 
-### function to remove from v observations where response in the low class, then split the rest randomly, all while keeping lines together
+## function to remove from v observations where response in the low class, then split the rest randomly, all while keeping lines together
 
 stratisplit <- function (x, n, keep, p, video.line) {
   x<-v
