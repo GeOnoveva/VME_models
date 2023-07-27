@@ -12,6 +12,7 @@ Data <- "~/R_projects/VH_MarVid/Data"
 ## Path to HI OneDrive folder, where Taxonary normally resides (only accessible when working from desktop RStudio)
 #SharedData <- "C:\\Users\\genoveva\\Havforskningsinstituttet\\Video analysis lab - Reference List\\"
 
+
 ## Path to ftp site, where environmental layers (already cropped and aligned) reside
 ftp_url <- "ftp://ftp2.ngu.no/toGeno/EnvLayersNiN2022/all"
 ftp_filepath <- paste0(strsplit(ftp_url, "\\//")[[1]][1], "//havforsk:Havf8776@", 
