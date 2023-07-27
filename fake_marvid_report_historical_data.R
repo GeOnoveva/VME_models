@@ -22,16 +22,30 @@ rm(old_data, old_sample_info)
 
 ## fake spatial pixels data frame (rather, incomplete)
 
+i<-1
+
+predpix <- raster(paste0(ftp_filepath,
+                         paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""))
+)
+names(predpix) <- substr(paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""),
+                         2,
+                         nchar(paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""))-4)
+predpix <- aggregate(predpix,4)
+
+predpix <- as(predpix, "SpatialPixelsDataFrame")
+
+
 i<-2
 
 tmpraster <- raster(paste0(ftp_filepath,
                            paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""))
 )
-names(tmpraster) <- substr(paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""),
-                           2,
-                           nchar(paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""))-4)
 
-tmpraster[]<- values(tmpraster)[pred@grid.index]
-pred <- as(tmpraster, "SpatialPixelsDataFrame")
+tmpraster <- aggregate(tmpraster,4)
 
-pred$BO22_carbonphytoltmax_bdmean<-values(tmpraster)[pred@grid.index]
+
+predpix[[i]]<- values(tmpraster)[predpix@grid.index]
+
+names(predpix@data)[[2]]<-substr(paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""),
+                                 2,
+                                 nchar(paste(unlist(strsplit(files[i], split="all", fixed=TRUE))[2], sep=""))-4)
