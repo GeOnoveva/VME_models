@@ -23,6 +23,7 @@ library(rgdal)
 library(dplyr)
 library(raster)
 library(qdapTools)
+library(RPostgreSQL)
 ```
 
 # Get coordinates of samples
@@ -73,6 +74,44 @@ writeOGR(resp_spat, savepath, paste("resp_spat", vme), driver = "ESRI Shapefile"
 # make resp have the same number of rows as resp_spat:
 
 resp <- resp %>% filter(SampID%in%resp_spat@data$SampID)
+```
+
+# Get coordinates of video lines
+```{r}
+library(RPostgreSQL)
+library(rgdal)
+
+postgres_driver <- dbDriver("PostgreSQL")
+postgres_conn <- dbConnect(postgres_driver,
+                           dbname = "marbunn",
+                           host = "postgres.hi.no",
+                           port = 5432,
+                           user = "marbunn_read",
+                           password = "Ecac7adgb!")
+tab_station <- dbGetQuery(postgres_conn, "select * from tab_station")
+tab_station <- tab_station[which(tab_station$equipment==2),]
+
+```
+
+# Make spatial object, video line level
+```{r}
+
+resp_spat1 <- respw %>% mutate(mean_long=as.numeric(pull(
+  dplyr::filter(data.frame(lookup(video.line,select(tab_station, c(sample_no, lon_mid_dec)), missing = NULL))))),
+  mean_lat=as.numeric(pull(
+    dplyr::filter(data.frame(lookup(video.line,select(tab_station, c(sample_no, lat_mid_dec)), missing = NULL)))))) %>%
+  dplyr::filter(!is.na(mean_long)) %>% rename(vmeind_density = mean_dens)
+
+coords <- coordinates(select(resp_spat1, c(mean_long, mean_lat)))
+
+resp_spat <- SpatialPointsDataFrame(coords, dplyr::select(resp_spat1, c(video.line,mean_rich, vmeind_density, sd_dens))) %>%
+                       utmize
+
+writeOGR(resp_spat, savepath, paste("resp_spat", vme), driver = "ESRI Shapefile", overwrite_layer = TRUE)
+
+# make resp have the same number of rows as resp_spat:
+
+resp <- resp %>% filter(sample_no%in%resp_spat@data$sample_no)
 ```
 
 
