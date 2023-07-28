@@ -111,7 +111,7 @@ writeOGR(resp_spat, savepath, paste("resp_spat", vme), driver = "ESRI Shapefile"
 
 # make resp have the same number of rows as resp_spat:
 
-resp <- resp %>% filter(sample_no%in%resp_spat@data$sample_no)
+respw <- respw %>% filter(video.line%in%resp_spat@data$video.line)
 ```
 
 
