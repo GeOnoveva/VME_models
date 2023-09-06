@@ -22,6 +22,8 @@ library(tidyr)
 
 # Load data
 ```{r}
+# for now use "fake marvid report" script
+
 #data <- read.csv(file.path(Data, "species_abundance.csv"), sep = "|")
 #data <- data %>% makesampid
 
