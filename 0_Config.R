@@ -1,4 +1,6 @@
 
+test
+
 ## Remember to wipe the environment when running from the top!
 
 rm(list = ls(all.names = TRUE)) #will clear all objects includes hidden objects.
@@ -7,7 +9,7 @@ gc()
 # Paths:
 
 ## Path to data folder on network drive:
-Data <- "~/R_projects/VH_MarVid/Data"
+Data <- "G:/R_projects/VH_MarVid/Data"
 
 ## Path to HI OneDrive folder, where Taxonary normally resides (only accessible when working from desktop RStudio)
 #SharedData <- "C:\\Users\\genoveva\\Havforskningsinstituttet\\Video analysis lab - Reference List\\"
@@ -19,10 +21,10 @@ ftp_filepath <- paste0(strsplit(ftp_url, "\\//")[[1]][1], "//havforsk:Havf8776@"
                    strsplit(ftp_url, "\\//")[[1]][2])#insert the credentials into the url
 
 ## Path to folder where to save intermediate objects created along the way and needed in subsequent steps (you need to create this folder if it doesn't exist)
-savepath <- "~/R_projects/VH_MarVid/Intermediate_objects"
+savepath <- "G:/R_projects/VH_MarVid/Intermediate_objects"
 
 ## Final products to be shared:
-outpath <- "~/R_projects/VH_MarVid/Results"
+outpath <- "G:/R_projects/VH_MarVid/Results"
 
 # Functions:
 
