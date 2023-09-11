@@ -11,9 +11,9 @@ outputs: v
 
 # Inputs
 ```{r}
-resp <- read.csv(file.path(savepath, "resp.csv"))
+resp <- read.csv(file.path(savepath, paste(vme,"resp.csv", collapse=" ")))
 
-load("G:/R_projects/VH_MarVid/code/VME_models/Intermediate_objects/1_Predictors_out.RData")
+load(file.path(savepath,"1_Predictors_out.RData"))
 
 ```
 
