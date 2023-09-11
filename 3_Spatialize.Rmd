@@ -9,14 +9,27 @@ inputs: (1) resp (in intermediate folder) (2) pred (in intermediate folder)
 workflow: the marvid sections (aka sample info) object is generated here
 outputs: v
 
+# Libraries
+```{r}
+library(dplyr)
+```
+
+
 # Inputs
 ```{r}
 resp <- read.csv(file.path(savepath, paste(vme,"resp.csv", collapse=" ")))
 
 load(file.path(savepath,"1_Predictors_out.RData"))
 
-
 ```
+
+## Aggregate to whole video line and calculate sd
+```{r}
+respw <- left_join(resp, sample_info) %>% group_by(video.line) %>%
+  summarize(mean_rich = mean(tot_rich), mean_dens = mean(tot_dens), sd_dens = sd(tot_dens))
+head(respw)
+```
+
 
 # Libraries
 ```{r}
