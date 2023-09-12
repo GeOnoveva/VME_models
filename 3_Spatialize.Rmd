@@ -12,6 +12,10 @@ outputs: v
 # Libraries
 ```{r}
 library(dplyr)
+library(rgdal)
+library(raster)
+library(qdapTools)
+library(RPostgreSQL)
 ```
 
 
@@ -20,6 +24,10 @@ library(dplyr)
 resp <- read.csv(file.path(savepath, paste(vme,"resp.csv", collapse=" ")))
 
 load(file.path(savepath,"1_Predictors_out.RData"))
+
+# set vme (again!)
+vme <- "Hard bottom sponge aggregations"
+
 
 ```
 
@@ -31,16 +39,8 @@ head(respw)
 ```
 
 
-# Libraries
-```{r}
-library(rgdal)
-library(dplyr)
-library(raster)
-library(qdapTools)
-library(RPostgreSQL)
-```
 
-# Get coordinates of samples
+# Get coordinates of samples (NOT WORKING YET)
 ```{python}
 import requests
 
@@ -72,18 +72,19 @@ with open(OUTPUL_FILEPATH, "w") as output_file:
 # Make spatial object
 ```{r}
 resp_spat1 <- resp %>% mutate(mean_long=as.numeric(pull(
-                                dplyr::filter(data.frame(lookup(SampID,select(sample_info, c(SampID, mean.longitude)), missing = NULL)), 
-                                                      !duplicated(data.frame(qdapTools::lookup(SampID,select(sample_info, c(SampID, mean.longitude)), missing = NULL)))
+                                dplyr::filter(data.frame(lookup(SampID,dplyr::select(sample_info, c(SampID, mean.longitude)), missing = NULL)), 
+                                                      !duplicated(data.frame(qdapTools::lookup(SampID,dplyr::select(sample_info, c(SampID, mean.longitude)), missing = NULL)))
                                                        ))),
                              mean_lat=as.numeric(pull(
-                               dplyr::filter(data.frame(lookup(SampID,select(sample_info, c(SampID, mean.latitude)), missing = NULL)), 
-                                                      !duplicated(data.frame(qdapTools::lookup(SampID,select(sample_info, c(SampID, mean.latitude)), missing = NULL)))
+                               dplyr::filter(data.frame(lookup(SampID,dplyr::select(sample_info, c(SampID, mean.latitude)), missing = NULL)), 
+                                                      !duplicated(data.frame(qdapTools::lookup(SampID,dplyr::select(sample_info, c(SampID, mean.latitude)), missing = NULL)))
                                                        )))) %>%
             filter(!is.na(mean_long))
-resp_spat <- SpatialPointsDataFrame(select(resp_spat1, c(mean_long, mean_lat)), select(resp_spat1, c(SampID,tot_rich, tot_dens, vmeind_density)))  
+
+resp_spat <- SpatialPointsDataFrame(dplyr::select(resp_spat1, c(mean_long, mean_lat)), dplyr::select(resp_spat1, c(SampID,tot_rich, tot_dens, vmeind_density)))  
                       #%>% utmize
 
-writeOGR(resp_spat, savepath, paste("resp_spat", vme), driver = "ESRI Shapefile", overwrite_layer = TRUE)
+writeOGR(resp_spat, savepath, paste(vme, "resp_spat"), driver = "ESRI Shapefile", overwrite_layer = TRUE)
 
 # make resp have the same number of rows as resp_spat:
 
@@ -111,28 +112,32 @@ tab_station <- tab_station[which(tab_station$equipment==2),]
 ```{r}
 
 resp_spat1 <- respw %>% mutate(mean_long=as.numeric(pull(
-  dplyr::filter(data.frame(lookup(video.line,select(tab_station, c(sample_no, lon_mid_dec)), missing = NULL))))),
+  dplyr::filter(data.frame(lookup(video.line,dplyr::select(tab_station, c(sample_no, lon_mid_dec)), missing = NULL))))),
   mean_lat=as.numeric(pull(
-    dplyr::filter(data.frame(lookup(video.line,select(tab_station, c(sample_no, lat_mid_dec)), missing = NULL)))))) %>%
+    dplyr::filter(data.frame(lookup(video.line,dplyr::select(tab_station, c(sample_no, lat_mid_dec)), missing = NULL)))))) %>%
   dplyr::filter(!is.na(mean_long)) %>% rename(vmeind_density = mean_dens)
 
-coords <- coordinates(select(resp_spat1, c(mean_long, mean_lat)))
+coords <- coordinates(dplyr::select(resp_spat1, c(mean_long, mean_lat)))
 
-resp_spat <- SpatialPointsDataFrame(coords, dplyr::select(resp_spat1, c(video.line,mean_rich, vmeind_density, sd_dens))) %>%
+resp_spat_vl <- SpatialPointsDataFrame(coords, dplyr::select(resp_spat1, c(video.line,mean_rich, vmeind_density, sd_dens))) %>%
                        utmize
 
-writeOGR(resp_spat, savepath, paste("resp_spat", vme), driver = "ESRI Shapefile", overwrite_layer = TRUE)
+writeOGR(resp_spat_vl, savepath, paste(vme, "resp_spat_vl"), driver = "ESRI Shapefile", overwrite_layer = TRUE)
 
 # make resp have the same number of rows as resp_spat:
 
 respw <- respw %>% filter(video.line%in%resp_spat@data$video.line)
 ```
 
+# Explore resp
+```{r}
+hist(resp$vmeind_density)
+```
 
 # Extract environmental data to points
 ```{r}
 e <- raster::extract(pred, resp_spat, sp=TRUE)
-v <- left_join(select(resp, SampID),data.frame(e), by="SampID")
+v <- left_join(dplyr::select(resp, SampID),data.frame(e), by="SampID")
 # generate random data if needed
 v
 ```
