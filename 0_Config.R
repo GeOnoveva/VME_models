@@ -9,6 +9,7 @@ gc()
 
 ## Path to data folder on network drive:
 Data <- "G:/R_projects/VH_MarVid/Data"
+#Data <- "~/R_projects/VH_MarVid/Data" # when running from Server
 
 ## Path to HI OneDrive folder, where Taxonary normally resides (only accessible when working from desktop RStudio)
 #SharedData <- "C:\\Users\\genoveva\\Havforskningsinstituttet\\Video analysis lab - Reference List\\"
@@ -21,9 +22,13 @@ ftp_filepath <- paste0(strsplit(ftp_url, "\\//")[[1]][1], "//havforsk:Havf8776@"
 
 ## Path to folder where to save intermediate objects created along the way and needed in subsequent steps (you need to create this folder if it doesn't exist)
 savepath <- "G:/R_projects/VH_MarVid/Intermediate_objects"
+#savepath <- "G:/R_projects/VH_MarVid/Intermediate_objects" # when running from Server
+
 
 ## Final products to be shared:
 outpath <- "G:/R_projects/VH_MarVid/Results"
+#outpath <- "~/R_projects/VH_MarVid/Results" # when running from Server
+
 
 # Functions:
 
