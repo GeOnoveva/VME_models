@@ -5,8 +5,8 @@ output: html_notebook
 
 # Intro
 
-inputs: (1) resp (in intermediate folder) (2) pred (in intermediate folder)
-workflow: the marvid sections (aka sample info) object is generated here
+inputs: (1) resp (in intermediate folder) (2) e (in intermediate folder)
+workflow: 
 outputs: v
 
 # Libraries
@@ -21,52 +21,24 @@ library(RPostgreSQL)
 
 # Inputs
 ```{r}
-resp <- read.csv(file.path(savepath, paste(vme,"resp.csv", collapse=" ")))
 
-load(file.path(savepath,"1_Predictors_out.RData"))
+e <- read.csv(file.path(savepath, "e.csv"))
+
+resp <- read.csv(file.path(savepath, paste(vme,"resp.csv", collapse=" ")))
 
 # set vme (again!)
 vme <- "Hard bottom sponge aggregations"
-
-
 ```
 
-## Aggregate to whole video line and calculate sd
+
+# Aggregate to whole video line and calculate sd
 ```{r}
-respw <- left_join(resp, sample_info) %>% group_by(video.line) %>%
+respw <- resp %>% mutate(video.line=sub("_.*", "", SampID))
+
+respw <- respw %>% group_by(video.line) %>%
   summarize(mean_rich = mean(tot_rich), mean_dens = mean(tot_dens), sd_dens = sd(tot_dens))
+
 head(respw)
-```
-
-
-
-# Get coordinates of samples (NOT WORKING YET)
-```{python}
-import requests
-
-API_URL = "http://marvid-staging.hi.no:8092/query/video_lines"
-OUTPUL_FILEPATH = "C:\\Users\\genoveva\\Downloads\\marvid_sections.csv"
-DELIMITER = ","
-CSV_HEADER = DELIMITER.join(["video line", "section", "mean latitude", "mean longitude"])
-
-api_response = requests.get(API_URL).json() 
-output_strings = [CSV_HEADER] 
-for vl_number in sorted(api_response.keys()):
-    vl = api_response[vl_number]
-    for section in sorted(vl["sections"]):
-        mean_lat = str(vl["sections"][section]["mean_lat"])
-        mean_lon = str(vl["sections"][section]["mean_lon"])
-        output_strings.append(DELIMITER.join([vl_number, section, mean_lat, mean_lon]))
-
-with open(OUTPUL_FILEPATH, "w") as output_file:
-    output_file.write("\n".join(output_strings))n
-```
-
-
-# Make sample info
-```{r}
-# sample_info <- read.csv(file.path(Data, "marvid_sections.csv"))
-# sample_info <- sample_info %>% makesampid
 ```
 
 # Make spatial object
@@ -129,14 +101,9 @@ writeOGR(resp_spat_vl, savepath, paste(vme, "resp_spat_vl"), driver = "ESRI Shap
 respw <- respw %>% filter(video.line%in%resp_spat@data$video.line)
 ```
 
-# Explore resp
-```{r}
-hist(resp$vmeind_density)
-```
 
-# Extract environmental data to points
+# join predictor values, response values, and standard deviation values
 ```{r}
-e <- raster::extract(pred, resp_spat, sp=TRUE)
 v <- left_join(dplyr::select(resp, SampID),data.frame(e), by="SampID")
 # generate random data if needed
 v
