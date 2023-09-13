@@ -1,14 +1,11 @@
 ---
-title: "Build predictor stack"
+title: "Build predictor stack and extract their values to sample points"
 output: html_notebook
 ---
+
 # Intro
-
-inputs: sample_info
-
-nice to have a "mask" shapefile that defines the modelling area, but not strictly necessary because environmental layers were all cropped and aligned when they were put in the ftp (MD does this)
-
-outputs: the predictor brick ("pred"), "e" data frame (values from raster stack extracted to all sample points)
+Inputs: sample_info
+Outputs: the predictor brick ("pred"), "e" data frame (values from raster stack extracted to all sample points)
 
 # Libraries
 ```{r}
@@ -18,13 +15,6 @@ library(rgeos)
 #install_github("skgrange/threadr")
 library(threadr)
 library(RCurl)
-```
-
-# Load and plot the modelling area.
-```{r}
-mask <- readOGR("../../Data/BaseLayers/mask.shp", verbose = FALSE)
-mask <- gUnaryUnion(mask)
-plot(mask)
 ```
 
 # Read in NGU Data
@@ -55,8 +45,8 @@ rm(x, tmpraster)
 pred
 ```
 
-# Extract to points
-## Sample info
+# Extract values to points
+## Get sample info
 ### If Marvid runing use this:
 ```{python}
 import requests
@@ -79,7 +69,7 @@ with open(OUTPUL_FILEPATH, "w") as output_file:
     output_file.write("\n".join(output_strings))n
 ```
 
-## If not, use this:
+### If not, use this:
 ```{r}
 sample_info <- read.csv(file.path(Data, "sample_info.csv"))
 # sample_info <- sample_info %>% makesampid # only needed when we switch to using marvid sections
@@ -90,14 +80,15 @@ sample_info <- read.csv(file.path(Data, "sample_info.csv"))
 e <- raster::extract(pred,dplyr::select(sample_info, mean.longitude, mean.latitude), sp=TRUE)
 ```
 
-
 # Save outputs
 ```{r}
 #write.csv(e, "G:\\R_projects\\VH_MarVid\\Intermediate_objects\\e.csv" )
 
 # save whole workspace (writing pred to tif will delete layer names, which is a pain...)
-writeRaster(pred, filename=file.path(savepath,"pred.tif"), options="INTERLEAVE=BAND", overwrite=TRUE)
 save.image(file=file.path(savepath, "1_Predictors_out.RData"))
+
+# But also write to tiff, who cares
+writeRaster(pred, filename=file.path(savepath,"pred.tif"), options="INTERLEAVE=BAND", overwrite=TRUE)
 ```
 
 
