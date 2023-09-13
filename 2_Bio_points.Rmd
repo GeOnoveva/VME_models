@@ -4,12 +4,10 @@ output: html_notebook
 ---
 
 # Intro
-
-Note to self: need to summarize by video quality in this script!
-
-inputs:  (1) MarVid report (aka "species_abundance.csv") (in downloads folder) (2) Taxonary (on HI onedrive folder)
+Inputs:  (1) MarVid report (aka "species_abundance.csv") (in downloads folder, or use copy from Data folder)
+(2) Taxonary (on HI onedrive folder, or use copy from Data folder)
 Workflow: edit the vme of interest
-outputs: response data (aka "resp") as a simple dataframe. Includes the density of all vme indicators for the selected vme as well as total richness and total abundance.
+Outputs: (1) response data (aka "resp") as a simple dataframe. Includes the density of all vme indicators for the selected vme as well as total richness and total abundance.
 
 # Libraries
 ```{r}
@@ -22,15 +20,18 @@ library(tidyr)
 
 # Load data
 ```{r}
+# species densities (marvid data)
 # for now use "fake marvid report" script
 
 #data <- read.csv(file.path(Data, "species_abundance.csv"), sep = "|")
 #data <- data %>% makesampid
 
+# Taxonary
 taxonary <- read_xlsx(file.path(Data,"Taxonary.xlsx"), sheet = 1) # needs to be closed
 ```
 
-# Lump detailed identifications with their corresponding taxon, and filter out generic/broad taxa
+## Lump detailed identifications with their corresponding taxon, and filter out generic/broad taxa
+Only applicable when using data directly downloaded from Marvid
 ```{r}
 # lump
 
@@ -72,6 +73,11 @@ resp2 <- data %>% filter(taxon%in%taxonary$Reference_List[which(taxonary$VME_Bur
 
 resp <- left_join(resp1,resp2) %>% mutate(vmeind_density=replace_na(vmeind_density,0))
 resp
+```
+
+## Explore resp
+```{r}
+hist(resp$vmeind_density)
 ```
 
 # Save output
