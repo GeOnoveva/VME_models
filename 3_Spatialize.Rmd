@@ -7,7 +7,7 @@ output: html_notebook
 
 inputs: (1) resp (in intermediate folder) (2) sample info
 workflow: 
-outputs: cleaned up resp (only samples withe metadata) and get local variability of vme density
+outputs: cleaned up resp (only samples with metadata) and local variability of vme density
 
 # Libraries
 ```{r}
