@@ -96,7 +96,7 @@ stratisplit <- function (x, n, keep, p, video.line) {
   d1$value <- 1
   d2 <- pivot_wider(d1, names_from = "densclas", values_fn = sum, values_fill = 0)
   colnames(d2)[2:4] <- c("low", "interm", "high")
-  d2 <- d2 %>% mutate(d2, tot = rowSums(select(.,low, interm, high)),
+  d2 <- d2 %>% mutate(d2, tot = rowSums(dplyr::select(.,low, interm, high)),
                       max = low/tot)
   d3 <- d2 %>% filter(max>0.5)
   
@@ -118,7 +118,7 @@ stratisplit <- function (x, n, keep, p, video.line) {
   # v_train = vsplit train + those reserved from before (partition = 1 is train)
   d4 <- v %>% filter(video.line%in%d3$video.line[which(d3$.partitions==2)])
   v_train = v_split %>% filter(.partitions==1) %>%
-    select(-which(colnames(.)==".partitions")) %>% rbind(.,d4)
+    dplyr::select(-which(colnames(.)==".partitions")) %>% rbind(.,d4)
   return(list(v_test, v_train))
 }
 
