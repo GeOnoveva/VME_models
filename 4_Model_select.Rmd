@@ -22,7 +22,7 @@ library(lattice)
 # Inputs
 ```{r}
 # get v (read)
-# v <- read.csv(file.path(savepath, "v.csv"))
+v <- read.csv(file.path(savepath, "v.csv"))
 # str(v)
 
 v <- v %>% 
@@ -34,7 +34,7 @@ v <- v %>%
 data.controls <- cforest_unbiased(ntree=1000, mtry=10)
 set.seed(2)
 fmla0 <- as.formula(paste("vmeind_density ~ ", 
-                         paste(colnames(v)[(which(colnames(v)=="SampID")+4):
+                         paste(colnames(v)[(which(colnames(v)=="SampID")+7):
                          length(colnames(v))], collapse= "+"))) # all predictors
 model0 <- cforest(fmla0,
                       data=v, # all observations 
@@ -57,6 +57,7 @@ takes ~24h with ~12 predictors
 #   }
 # )
 ```
+
 # Variable selection (this uses Breiman Random Forests to calculate varimp)
 hence, it uses only numeric variables
 ```{r}
@@ -105,7 +106,7 @@ v <- v %>% filter(complete.cases(.))
 
 
 # video.line is single column. extract or lookup from sample info
-video.line <- as.character(lookup(v$SampID, select(sample_info, section, video.line), sample_info$video.line))
+video.line <- as.character(lookup(v$SampID, dplyr::select(sample_info, section, video.line), sample_info$video.line))
 
 v_test <- stratisplit(v, n, keep, p, as.factor(video.line))[[1]]
 v_train <- stratisplit(v, n, keep, p, as.factor(video.line))[[2]]
@@ -113,10 +114,6 @@ v_train <- stratisplit(v, n, keep, p, as.factor(video.line))[[2]]
 rbind(hist(log(v_train$vmeind_density)), hist(log(v_test$vmeind_density)))
 
 ```
-
-
-
-
 # Model evaluation
 Using the variables that would have been selected by the varimp plot above makes VE even lower (tried on shallow seapens). Getting about 5%
 ```{r}
@@ -126,10 +123,11 @@ model1 <- cforest(fmla0,
 
 predicted <- treeresponse(model1, newdata=v_test, OOB=TRUE)
 observed <- v_test %>%
-  select(vmeind_density)
+  dplyr::select(vmeind_density)
 vecv <- vecv(pull(observed),pull(data.frame(unlist(predicted)))) # variance explained by cross-validation, conservative estimate to report
 vecv
 ```
+
 # More model evaluation: R square
 ```{r}
 y=observed
@@ -142,13 +140,10 @@ pseudo.R2<-(1-mse)/var(y) # it yielded pseudo R^2 = 0.4327, so 43.27% of explain
 # adj.R2<-1-(1-pseudo.R2)*((length(y)-1)/(length(y)-n-1)) # where n = number of predictors in the model
 pseudo.R2
 ```
+
 # RFsp
 https://github.com/thengl/GeoMLA/blob/master/RF_uncertainty/Workshop_uncertainty.md
 https://stackoverflow.com/questions/73559636/unable-to-install-gsif-package-in-r
-
-```{r}
-
-```
 
 
 # Final model
