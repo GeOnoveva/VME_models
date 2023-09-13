@@ -72,6 +72,8 @@ with open(OUTPUL_FILEPATH, "w") as output_file:
 ### If not, use this:
 ```{r}
 sample_info <- read.csv(file.path(Data, "sample_info.csv"))
+sample_info <- sample_info %>% rename(video.line=VL, section=SampID2, mean.latitude=y_coord, mean.longitude=x_coord) %>%
+  dplyr::select(video.line, section, mean.latitude, mean.longitude, SampID)
 # sample_info <- sample_info %>% makesampid # only needed when we switch to using marvid sections
 ```
 
