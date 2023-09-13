@@ -5,9 +5,9 @@ output: html_notebook
 
 # Intro
 
-inputs: (1) resp (in intermediate folder) (2) e (in intermediate folder)
+inputs: (1) resp (in intermediate folder) (2) sample info
 workflow: 
-outputs: v
+outputs: 
 
 # Libraries
 ```{r}
@@ -21,13 +21,41 @@ library(RPostgreSQL)
 
 # Inputs
 ```{r}
-
-e <- read.csv(file.path(savepath, "e.csv"))
-
 resp <- read.csv(file.path(savepath, paste(vme,"resp.csv", collapse=" ")))
 
 # set vme (again!)
 vme <- "Hard bottom sponge aggregations"
+```
+
+## Get sample info
+### If Marvid runing use this:
+```{python}
+import requests
+
+API_URL = "http://marvid-staging.hi.no:8092/query/video_lines"
+OUTPUL_FILEPATH = "C:\\Users\\genoveva\\Downloads\\marvid_sections.csv"
+DELIMITER = ","
+CSV_HEADER = DELIMITER.join(["video line", "section", "mean latitude", "mean longitude"])
+
+api_response = requests.get(API_URL).json() 
+output_strings = [CSV_HEADER] 
+for vl_number in sorted(api_response.keys()):
+    vl = api_response[vl_number]
+    for section in sorted(vl["sections"]):
+        mean_lat = str(vl["sections"][section]["mean_lat"])
+        mean_lon = str(vl["sections"][section]["mean_lon"])
+        output_strings.append(DELIMITER.join([vl_number, section, mean_lat, mean_lon]))
+
+with open(OUTPUL_FILEPATH, "w") as output_file:
+    output_file.write("\n".join(output_strings))n
+```
+
+### If not, use this:
+```{r}
+sample_info <- read.csv(file.path(Data, "sample_info.csv"))
+sample_info <- sample_info %>% rename(video.line=VL, section=SampID2, mean.latitude=y_coord, mean.longitude=x_coord) %>%
+  dplyr::select(video.line, section, mean.latitude, mean.longitude, SampID)
+# sample_info <- sample_info %>% makesampid # only needed when we switch to using marvid sections
 ```
 
 
@@ -61,6 +89,7 @@ writeOGR(resp_spat, savepath, paste(vme, "resp_spat"), driver = "ESRI Shapefile"
 # make resp have the same number of rows as resp_spat:
 
 resp <- resp %>% filter(SampID%in%resp_spat@data$SampID)
+head(resp)
 ```
 
 # Get coordinates of video lines
@@ -101,13 +130,6 @@ writeOGR(resp_spat_vl, savepath, paste(vme, "resp_spat_vl"), driver = "ESRI Shap
 respw <- respw %>% filter(video.line%in%resp_spat@data$video.line)
 ```
 
-
-# join predictor values, response values, and standard deviation values
-```{r}
-v <- left_join(dplyr::select(resp, SampID),data.frame(e), by="SampID")
-# generate random data if needed
-v
-```
 
 # Save outputs
 ```{r}
