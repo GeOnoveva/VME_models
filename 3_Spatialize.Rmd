@@ -7,7 +7,7 @@ output: html_notebook
 
 inputs: (1) resp (in intermediate folder) (2) sample info
 workflow: 
-outputs: 
+outputs: cleaned up resp (only samples withe metadata) and get local variability of vme density
 
 # Libraries
 ```{r}
@@ -134,5 +134,6 @@ respw <- respw %>% filter(video.line%in%resp_spat@data$video.line)
 # Save outputs
 ```{r}
 rm(resp_spat1)
-write.csv(v, file.path(savepath, "v.csv"), row.names = FALSE)
+write.csv(resp, file.path(savepath, paste(vme,"resp new.csv", collapse=" ")))
+write.csv(respw, file.path(savepath, "st_dev_vme_dens.csv"), row.names = FALSE)
 ```
