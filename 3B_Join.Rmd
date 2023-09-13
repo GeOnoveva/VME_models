@@ -1,0 +1,28 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+# Intro
+inputs: e (from intermediate folder), new resp (from intermediate folder), standard variation of vme density (from intermediate folder)
+
+# Inputs
+```{r}
+e <- read.csv(file.path(savepath, "e.csv"))
+resp <- read.csv(file.path(savepath, paste(vme,"resp new.csv", collapse=" ")))
+stdev <- read.csv(file.path(savepath, "st_dev_vme_dens.csv"))
+```
+
+# join predictor values, response values, and standard deviation values
+```{r}
+e <- cbind(e,sample_info)
+v <- left_join(resp,data.frame(e), by="SampID")
+dim(v)
+```
+# join standard deviation of vme density
+```{r}
+v <- v %>% left_join(stdev, by="video.line")
+```
+
+
+
+# save
