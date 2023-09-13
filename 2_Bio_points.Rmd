@@ -80,6 +80,8 @@ resp
 hist(resp$vmeind_density)
 ```
 
+
+
 # Save output
 ```{r}
 rm(resp1, resp2)
