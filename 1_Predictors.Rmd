@@ -4,8 +4,11 @@ output: html_notebook
 ---
 # Intro
 
-inputs: nice to have a "mask" shapefile that defines the modelling area, but not strictly necessary because environmental layers were all cropped and aligned when they were put in the ftp (MD does this)
-outputs: the predictor brick ("pred")
+inputs: sample_info
+
+nice to have a "mask" shapefile that defines the modelling area, but not strictly necessary because environmental layers were all cropped and aligned when they were put in the ftp (MD does this)
+
+outputs: the predictor brick ("pred"), "e" data frame (values from raster stack extracted to all sample points)
 
 # Libraries
 ```{r}
@@ -23,7 +26,9 @@ mask <- readOGR("../../Data/BaseLayers/mask.shp", verbose = FALSE)
 mask <- gUnaryUnion(mask)
 plot(mask)
 ```
+
 # Read in NGU Data
+make "pred" object
 ```{r}
 files <- list_files_ftp(
   ftp_url,
@@ -49,13 +54,50 @@ pred <- dropLayer(pred, which(names(pred)%in%gsub(".tif", "", list.files("G:\\GI
 rm(x, tmpraster)
 pred
 ```
+
+# Extract to points
+## Sample info
+### If Marvid runing use this:
+```{python}
+import requests
+
+API_URL = "http://marvid-staging.hi.no:8092/query/video_lines"
+OUTPUL_FILEPATH = "C:\\Users\\genoveva\\Downloads\\marvid_sections.csv"
+DELIMITER = ","
+CSV_HEADER = DELIMITER.join(["video line", "section", "mean latitude", "mean longitude"])
+
+api_response = requests.get(API_URL).json() 
+output_strings = [CSV_HEADER] 
+for vl_number in sorted(api_response.keys()):
+    vl = api_response[vl_number]
+    for section in sorted(vl["sections"]):
+        mean_lat = str(vl["sections"][section]["mean_lat"])
+        mean_lon = str(vl["sections"][section]["mean_lon"])
+        output_strings.append(DELIMITER.join([vl_number, section, mean_lat, mean_lon]))
+
+with open(OUTPUL_FILEPATH, "w") as output_file:
+    output_file.write("\n".join(output_strings))n
+```
+
+## If not, use this:
+```{r}
+sample_info <- read.csv(file.path(Data, "sample_info.csv"))
+# sample_info <- sample_info %>% makesampid # only needed when we switch to using marvid sections
+```
+
+## Extract
+```{r}
+e <- raster::extract(pred,dplyr::select(sample_info, mean.longitude, mean.latitude), sp=TRUE)
+```
+
+
 # Save outputs
 ```{r}
+#write.csv(e, "G:\\R_projects\\VH_MarVid\\Intermediate_objects\\e.csv" )
 
 # save whole workspace (writing pred to tif will delete layer names, which is a pain...)
 writeRaster(pred, filename=file.path(savepath,"pred.tif"), options="INTERLEAVE=BAND", overwrite=TRUE)
 save.image(file=file.path(savepath, "1_Predictors_out.RData"))
-
 ```
 
 
