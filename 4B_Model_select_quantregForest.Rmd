@@ -76,7 +76,7 @@ resp.dist0 <-buffer.dist(resp_spat["vmeind_density"],
                                  pred[1], as.factor(1:nrow(resp_spat))) 
 ## takes 1+ mins!
 ov.resp = over(resp_spat["vmeind_density"], resp.dist0)
-sw.dn0 <- paste(names(swiss.dist0), collapse="+")
+sw.dn0 <- paste(names(resp.dist0), collapse="+")
 fmla01 <- as.formula(paste("vmeind_density ~ ", 
                            sw.dn0, 
                            " + ",
