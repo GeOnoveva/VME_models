@@ -4,6 +4,7 @@ output: html_notebook
 ---
 # Intro
 inputs: e (from intermediate folder), new resp (from intermediate folder), standard variation of vme density (from intermediate folder)
+output: clean v table
 
 # Inputs
 ```{r}
@@ -150,4 +151,3 @@ write.csv(dplyr::select(v,
                         v_bott_mean		    
 			   ), file.path(savepath, "v.csv"), row.names = FALSE)
 ```
-
