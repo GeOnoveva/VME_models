@@ -3,6 +3,8 @@ title: "R Notebook"
 output: html_notebook
 ---
 
+inputs: v, resp_spat (whole video line level), pred
+
 # Libraries
 ```{r}
 library(quantregForest)
@@ -16,6 +18,11 @@ v <- read.csv(file.path(savepath, "v.csv"))
 
 v <- v %>% 
       mutate_at(vars(  landscape, sedclass, seddan, sedmil    ), factor)
+```
+
+# More inputs: resp spat at station level
+```{r}
+resp_spat_vl <- readRDS(file.path(savepath, "resp_spat_vl.rds"))
 ```
 
 
@@ -79,14 +86,12 @@ vecv
 ```
 # Whole mapping area
 ```{r}
-crs(resp_spat) <- crs("+proj=utm + zone=33 + datum=WGS84 + units=m + no_defs")
-ov2 = over(y=pred, x=resp_spat)  # same as extract
-ov2 <- e
+ov2<-v ## check which cols i need
 ```
 
 
 ```{r}
-resp.dist0 <-buffer.dist(resp_spat["vmeind_density"], 
+resp.dist0 <-buffer.dist(resp_spat_vl["vmeind_density"], 
                                  pred[1], as.factor(1:nrow(resp_spat))) 
 ## takes 1+ mins!
 ov.resp = over(resp_spat["vmeind_density"], resp.dist0)
