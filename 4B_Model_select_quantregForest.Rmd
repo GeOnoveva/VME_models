@@ -26,6 +26,11 @@ v <- v %>%
 resp_spat_vl <- readRDS(file.path(savepath, "resp_Spat_vl.rds"))
 ```
 
+# More inputs: pred
+comes with a bunch of other objects because loading whole workspace
+```{r}
+load(file.path(savepath,"1_Predictors_out.RData"))
+```
 
 # Using the quantregForest library
 
