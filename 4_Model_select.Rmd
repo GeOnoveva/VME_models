@@ -4,7 +4,7 @@ title: "R Notebook"
 output: html_notebook
 ---
 # Intro
-inputs: v
+inputs: v, sample info
 outputs: final model ("modelfin")
 Need to keep an eye on this: https://link.springer.com/article/10.1007/s11004-021-09946-w
 
@@ -17,6 +17,7 @@ library(spm)
 library(VSURF)
 library(tidyverse)
 library(lattice)
+library(qdapTools)
 ```
 
 # Inputs
@@ -28,6 +29,39 @@ v <- read.csv(file.path(savepath, "v.csv"))
 v <- v %>% 
       mutate_at(vars(  landscape, sedclass, seddan, sedmil    ), factor)
 ```
+
+# More intputs: sample info
+## Get sample info
+### If Marvid runing use this:
+```{python}
+import requests
+
+API_URL = "http://marvid-staging.hi.no:8092/query/video_lines"
+OUTPUL_FILEPATH = "C:\\Users\\genoveva\\Downloads\\marvid_sections.csv"
+DELIMITER = ","
+CSV_HEADER = DELIMITER.join(["video line", "section", "mean latitude", "mean longitude"])
+
+api_response = requests.get(API_URL).json() 
+output_strings = [CSV_HEADER] 
+for vl_number in sorted(api_response.keys()):
+    vl = api_response[vl_number]
+    for section in sorted(vl["sections"]):
+        mean_lat = str(vl["sections"][section]["mean_lat"])
+        mean_lon = str(vl["sections"][section]["mean_lon"])
+        output_strings.append(DELIMITER.join([vl_number, section, mean_lat, mean_lon]))
+
+with open(OUTPUL_FILEPATH, "w") as output_file:
+    output_file.write("\n".join(output_strings))n
+```
+
+### If not, use this:
+```{r}
+sample_info <- read.csv(file.path(Data, "sample_info.csv"))
+sample_info <- sample_info %>% rename(video.line=VL, section=SampID2, mean.latitude=y_coord, mean.longitude=x_coord) %>%
+  dplyr::select(video.line, section, mean.latitude, mean.longitude, SampID)
+# sample_info <- sample_info %>% makesampid # only needed when we switch to using marvid sections
+```
+
 
 # Full model: conditional inference forest
 ```{r}
