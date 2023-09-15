@@ -136,4 +136,5 @@ respw <- respw %>% filter(video.line%in%resp_spat@data$video.line)
 rm(resp_spat1)
 write.csv(resp, file.path(savepath, paste(vme,"resp new.csv", collapse=" ")))
 write.csv(respw, file.path(savepath, "st_dev_vme_dens.csv"), row.names = FALSE)
+saveRDS(resp_spat_vl, file.path(savepath, "resp_Spat_vl.rds"))
 ```
