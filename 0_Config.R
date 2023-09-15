@@ -22,7 +22,7 @@ ftp_filepath <- paste0(strsplit(ftp_url, "\\//")[[1]][1], "//havforsk:Havf8776@"
 
 ## Path to folder where to save intermediate objects created along the way and needed in subsequent steps (you need to create this folder if it doesn't exist)
 savepath <- "G:/R_projects/VH_MarVid/Intermediate_objects"
-#savepath <- "G:/R_projects/VH_MarVid/Intermediate_objects" # when running from Server
+#savepath <- "~/R_projects/VH_MarVid/Intermediate_objects" # when running from Server
 
 
 ## Final products to be shared:
