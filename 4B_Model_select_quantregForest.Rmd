@@ -30,6 +30,7 @@ resp_spat_vl <- readRDS(file.path(savepath, "resp_Spat_vl.rds"))
 comes with a bunch of other objects because loading whole workspace
 ```{r}
 load(file.path(savepath,"1_Predictors_out.RData"))
+pred.pix <- readRDS(file.path(savepath,"pred.rds"))
 ```
 
 # Using the quantregForest library
