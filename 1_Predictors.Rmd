@@ -91,6 +91,9 @@ save.image(file=file.path(savepath, "1_Predictors_out.RData"))
 
 # But also write to tiff, who cares
 writeRaster(pred, filename=file.path(savepath,"pred.tif"), options="INTERLEAVE=BAND", overwrite=TRUE)
+
+# write to spatial pixels
+saveRDS(as(pred, "SpatialPixelsDataFrame"), file.path(savepath,"pred.rds"))
 ```
 
 
