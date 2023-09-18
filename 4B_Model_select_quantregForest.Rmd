@@ -29,7 +29,7 @@ resp_spat_vl <- readRDS(file.path(savepath, "resp_Spat_vl.rds"))
 # More inputs: pred
 comes with a bunch of other objects because loading whole workspace
 ```{r}
-load(file.path(savepath,"1_Predictors_out.RData"))
+#load(file.path(savepath,"1_Predictors_out.RData"))
 pred.pix <- readRDS(file.path(savepath,"pred.rds"))
 ```
 
@@ -99,7 +99,7 @@ ov2<-v ## check which cols i need
 
 ```{r}
 resp.dist0 <-buffer.dist(resp_spat_vl["vmeind_density"], 
-                                 pred[1], as.factor(1:nrow(resp_spat))) 
+                                 pred.pix[1], as.factor(1:nrow(resp_spat_vl))) 
 ## takes 1+ mins!
 ov.resp = over(resp_spat["vmeind_density"], resp.dist0)
 sw.dn0 <- paste(names(resp.dist0), collapse="+")
