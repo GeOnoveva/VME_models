@@ -107,10 +107,23 @@ fmla01 <- as.formula(paste("vmeind_density ~ ",
                            sw.dn0, 
                            " + ",
                            xxxxxxxxxxxxxx)) # names of pred@data with +'s in between
-fmla0
-ov.resp <- over(resp_spat["vmeind_density"], pred[1:2])
-sw.rm = do.call(cbind, list(resp_spat@data["vmeind_density"], ov.rain
-                            , ov.rain
+fmla01
+ov.resp <- over(resp_spat["vmeind_density"], pred.pix[1:2])
+sw.rm = do.call(cbind, list(resp_spat@data["vmeind_density"], ov.resp
+                            , ov.resp
                             ))
+```
+
+We can next fit a RFsp model by using (previously fine-tuned RF parameters):
+
+```{r}
+# fine-tune mtry, sample.fraction
+
+# then train model
+
+m1 <- ranger(fmla01, sw.rm[complete.cases(sw.rm),], mtry=27, #mtry was 27 
+                  min.node.size=2, sample.fraction=0.9930754, 
+                  num.trees=150, importance = "impurity", seed=1, quantreg=TRUE)
+m1
 ```
 
