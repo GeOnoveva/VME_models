@@ -41,9 +41,8 @@ pred.pix <- readRDS(file.path(savepath,"pred.rds"))
 ```
 
 # Using the quantregForest library
-
+This needs v_train and v_test, which are generated in Noebook 4
 ```{r}
-
 # train
 Ytrain = v_train %>%
   dplyr::select(vmeind_density) %>% pull
@@ -75,9 +74,6 @@ print(t(data.frame(xl[order(unlist(xl), decreasing=TRUE)[1:10]])))
 ```
 
 ```{r}
-
-quantiles = c((1-.682)/2, 0.5, 1-(1-.682)/2)
-
 vme.qrf2 <- predict(qrf2, cbind(
   #swiss.dist0@data, 
   v_test), 
@@ -99,10 +95,6 @@ vecv
 
 ```
 # Whole mapping area
-```{r}
-ov2<-v ## check which cols i need
-```
-
 
 ```{r}
 resp.dist0 <-buffer.dist(resp_spat_vl["vmeind_density"], 
@@ -121,20 +113,25 @@ sw.rm = do.call(cbind, list(resp_spat@data["vmeind_density"], ov.resp
                             ))
 ```
 
-We can next fit a RFsp model by using (previously fine-tuned RF parameters):
-
+# fine tune RF parameters
 ```{r}
-# fine-tune mtry, sample.fraction
 
-# then train model
+```
 
+# select variables
+```{r}
+
+```
+
+# train final model
+```{r}
 m1 <- ranger(fmla01, sw.rm[complete.cases(sw.rm),], mtry=27, #mtry was 27 
                   min.node.size=2, sample.fraction=0.9930754, 
                   num.trees=150, importance = "impurity", seed=1, quantreg=TRUE)
 m1
 ```
 
-
+# predict
 ```{r}
 vme.rfd1 <- predict(m1, cbind(
   resp.dist0@data, 
@@ -147,10 +144,8 @@ pred.pix$vme_dens_var = (vme.rfd1[,3]-vme.rfd1[,1])/2
 str(pred.pix@data)
 ```
 
-
+# visualize
 ```{r qrf-sic97-maps, echo=FALSE, fig.width=9, fig.cap="Predictions and prediction errors for the SIC97 data set."}
-
-
 par(mfrow=c(1,2), oma=c(0,0,0,0.5), mar=c(0,0,1.5,1))
 plot(raster(pred.pix["vme_dens"]), col=leg, 
      main="Random Forest (RF)", axes=FALSE, box=FALSE)
