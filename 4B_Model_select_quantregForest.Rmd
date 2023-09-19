@@ -5,10 +5,17 @@ output: html_notebook
 
 inputs: v, resp_spat (whole video line level), pred
 
-# Libraries
+# Libraries etc
 ```{r}
 library(quantregForest)
 library(tidyverse)
+library(rgdal)
+
+quantiles = c((1-.682)/2, 0.5, 1-(1-.682)/2)
+## color legend:
+leg = c("#0000ff", "#0028d7", "#0050af", "#007986", "#00a15e", "#00ca35", 
+        "#00f20d", "#1aff00", "#43ff00", "#6bff00", "#94ff00", "#bcff00", 
+        "#e5ff00", "#fff200", "#ffca00", "#ffa100", "#ff7900", "#ff5000", "#ff2800", "#ff0000")
 ```
 
 # Inputs
@@ -125,5 +132,38 @@ m1 <- ranger(fmla01, sw.rm[complete.cases(sw.rm),], mtry=27, #mtry was 27
                   min.node.size=2, sample.fraction=0.9930754, 
                   num.trees=150, importance = "impurity", seed=1, quantreg=TRUE)
 m1
+```
+
+
+```{r}
+vme.rfd1 <- predict(m1, cbind(
+  resp.dist0@data, 
+  pred.pix@data), 
+                     type="quantiles", quantiles=quantiles)$predictions
+## now more computational...
+pred.pix$vme_dens = vme.rfd1[,2]
+## s.d. of the prediction error:
+pred.pix$vme_dens_var = (vme.rfd1[,3]-vme.rfd1[,1])/2
+str(pred.pix@data)
+```
+
+
+```{r qrf-sic97-maps, echo=FALSE, fig.width=9, fig.cap="Predictions and prediction errors for the SIC97 data set."}
+
+
+par(mfrow=c(1,2), oma=c(0,0,0,0.5), mar=c(0,0,1.5,1))
+plot(raster(pred.pix["vme_dens"]), col=leg, 
+     main="Random Forest (RF)", axes=FALSE, box=FALSE)
+points(resp_spat, pch="+")
+plot(raster(pred.pix["vme_dens_var"]), col=rev(bpy.colors()), 
+     main="Random Forest (RF) prediction error", axes=FALSE, box=FALSE)
+points(resp_spat, pch="+")
+```
+
+# save outputs
+```{r}
+writeGDAL(swiss1km["rainfall_rfd1"], fname = "../RF_vs_kriging/results/rainfall/pred_rainfall_RFsp.tif", options = c("COMPRESS=DEFLATE"))
+writeGDAL(swiss1km["rainfall_rfd1_var"], fname = "../RF_vs_kriging/results/rainfall/pred.var_rainfall_RFsp.tif", options = c("COMPRESS=DEFLATE"))
+
 ```
 
