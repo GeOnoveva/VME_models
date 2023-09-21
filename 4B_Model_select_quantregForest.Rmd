@@ -10,6 +10,8 @@ inputs: v, resp_spat (whole video line level), pred
 library(quantregForest)
 library(tidyverse)
 library(rgdal)
+library(caret)
+library(spm)
 
 quantiles = c((1-.682)/2, 0.5, 1-(1-.682)/2)
 ## color legend:
@@ -115,7 +117,12 @@ sw.rm = do.call(cbind, list(resp_spat@data["vmeind_density"], ov.resp
 
 # fine tune RF parameters
 ```{r}
-
+control <- trainControl(method="repeatedcv", number=10, repeats=3, search="grid")
+set.seed(1)
+tunegrid <- expand.grid(.mtry=c(1:30))
+rf_gridsearch <- train(fmla0, data=v, method="qrf", metric="Rsquared", tuneGrid=tunegrid, trControl=control)
+print(rf_gridsearch)
+plot(rf_gridsearch)
 ```
 
 # select variables
