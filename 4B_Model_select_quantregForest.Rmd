@@ -40,79 +40,37 @@ comes with a bunch of other objects because loading whole workspace
 ```{r}
 #load(file.path(savepath,"1_Predictors_out.RData"))
 pred.pix <- readRDS(file.path(savepath,"pred.rds"))
+pred.pix1 <- subset(pred.pix, complete.cases(pred.pix@data))
 ```
 
-# Using the quantregForest library
-This needs v_train and v_test, which are generated in Noebook 4
+# select environmental variables
 ```{r}
-# train
-Ytrain = v_train %>%
-  dplyr::select(vmeind_density) %>% pull
-Xtrain <- v_train %>% dplyr::select(6:dim(v_train)[2])
-  #%>% rescl5_260
-qrf <- quantregForest(x=Xtrain, y=Ytrain)
-
-Xtest = v_test %>% dplyr::select(6:dim(v_test)[2])
-
-predicted <- predict(qrf, Xtest, what=mean)
-observed <- v_test %>%
-  dplyr::select(vmeind_density)
-idx <- which(is.na(pull(data.frame(unlist(predicted)))))
-vecv <- vecv(pull(observed)[-idx],pull(data.frame(unlist(predicted)))[-idx]) # variance explained by cross-validation, conservative estimate to report
-vecv
-```
-# Another approach (using ranger)
-
-```{r}
-library(ranger)
-qrf2<-ranger(fmla0, v_train, mtry=5,  min.node.size=2, sample.fraction=0.9930754, num.trees=500, # these parameters need to have been fined-tuned on a previous step
-                   importance="impurity", seed=1, quantreg= TRUE)
-qrf2
+control <- rfeControl(functions=rfFuncs, method="cv", number=10)
+# run the RFE algorithm
+results <- rfe(v[,8:121], v[,4], sizes=c(1:113), rfeControl=control)
+# chosen features
+selvar <- predictors(results)
 ```
 
-```{r}
-xl <- as.list(ranger::importance(qrf2))
-print(t(data.frame(xl[order(unlist(xl), decreasing=TRUE)[1:10]])))
-```
-
-```{r}
-vme.qrf2 <- predict(qrf2, cbind(
-  #swiss.dist0@data, 
-  v_test), 
-                     type="quantiles", quantiles=quantiles)$predictions
-## now more computational...
-v_test$vme.qrf2pr = vme.qrf2[,2]
-## s.d. of the prediction error:
-v_test$vme.qrf2var = (vme.qrf2[,3]-vme.qrf2[,1])/2
-head(v_test)
-```
-
-```{r}
-predicted <- v_test$vme.qrf2pr
-observed <- v_test %>%
-  dplyr::select(vmeind_density)
-
-vecv <- vecv(pull(observed),pull(data.frame(unlist(predicted)))) # variance explained by cross-validation, conservative estimate to report
-vecv
-
-```
-# Whole mapping area
-
+# add spatial variables
 ```{r}
 resp.dist0 <-buffer.dist(resp_spat_vl["vmeind_density"], 
                                  pred.pix[1], as.factor(1:nrow(resp_spat_vl))) 
-## takes 1+ mins!
+
 ov.resp = over(resp_spat["vmeind_density"], resp.dist0)
-sw.dn0 <- paste(names(resp.dist0), collapse="+")
+all_names <- paste(c(names(resp.dist0), selvar), collapse="+")
 fmla01 <- as.formula(paste("vmeind_density ~ ", 
-                           sw.dn0, 
-                           " + ",
-                           xxxxxxxxxxxxxx)) # names of pred@data with +'s in between
+                           all_names))
 fmla01
 ov.resp <- over(resp_spat["vmeind_density"], pred.pix[1:2])
 sw.rm = do.call(cbind, list(resp_spat@data["vmeind_density"], ov.resp
                             , ov.resp
                             ))
+```
+
+# new v
+```{r}
+v <- left_join(v, ov.resp)
 ```
 
 # fine tune RF parameters
@@ -122,17 +80,12 @@ set.seed(1)
 tunegrid <- expand.grid(.mtry=c(1:30))
 rf_gridsearch <- train(fmla0, data=v, method="qrf", metric="Rsquared", tuneGrid=tunegrid, trControl=control)
 print(rf_gridsearch)
-plot(rf_gridsearch)
-```
-
-# select variables
-```{r}
-
 ```
 
 # train final model
 ```{r}
-m1 <- ranger(fmla01, sw.rm[complete.cases(sw.rm),], mtry=27, #mtry was 27 
+mtry=rf_gridsearch$bestTune
+m1 <- ranger(fmla01, sw.rm[complete.cases(sw.rm),], mtry=mtry, 
                   min.node.size=2, sample.fraction=0.9930754, 
                   num.trees=150, importance = "impurity", seed=1, quantreg=TRUE)
 m1
