@@ -12,49 +12,23 @@ This script can be run as soon as environmental layers for new areas are availab
 ```{r}
 library(raster)
 library(rgdal)
+## color legend:
+leg = c("#0000ff", "#0028d7", "#0050af", "#007986", "#00a15e", "#00ca35", 
+        "#00f20d", "#1aff00", "#43ff00", "#6bff00", "#94ff00", "#bcff00", 
+        "#e5ff00", "#fff200", "#ffca00", "#ffa100", "#ff7900", "#ff5000", "#ff2800", "#ff0000")
+```
+
+# inputs
+```{r}
+
 ```
 
 # Select model
 ```{r}
-model <- modelfin
+m1 <- m1
 ```
 
-# Predictions
-```{r}
-# list of factor levels
-
-f1 <- levels(v$landscape)
-f2 <- levels(v$sedclass)
-f3 <- levels(v$seddan)
-f4 <- levels(v$sedmil)
-
-f <- list(f1,f2, f3, f4)
-
-names(f) <-c("landscape", "sedclass", "seddan", "sedmil" )
-
-predfun <- function(m, d, ...) predict(m, newdata=d, ...)
-
-#pc <- raster::predict(pred, model, OOB=TRUE, factors=f, fun=predfun)
-
-## same, in parallel
-
-beginCluster()
-pc <- clusterR(pred,
-               predict,
-               args=list(model=model,
-                         OOB=TRUE,
-                         factors=f,
-                         fun=predfun,
-                         index=1:2)) # index=1?
-pc <- pc[[1]]
-```
-
-# Save output
-```{r}
-#writeRaster(pc,file.path(outdatapath, paste0("Prediction", response, ".tif", collapse = NULL)), options="INTERLEAVE=BAND", overwrite=TRUE)
-```
-
-# Using spatial pixels instead
+# Using spatial pixels
 ```{r}
 vme.rfd1 <- predict(m1, cbind(
   resp.dist0@data, 
