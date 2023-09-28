@@ -50,6 +50,7 @@ control <- rfeControl(functions=rfFuncs, method="cv", number=10)
 results <- rfe(v[,8:121], v[,4], sizes=c(1:113), rfeControl=control)
 # chosen features
 selvar <- predictors(results)
+selvar
 ```
 
 # add spatial variables
@@ -59,9 +60,9 @@ resp.dist0 <-buffer.dist(resp_spat_vl["vmeind_density"],
 
 ov.resp = over(resp_spat["vmeind_density"], resp.dist0)
 all_names <- paste(c(names(resp.dist0), selvar), collapse="+")
-fmla01 <- as.formula(paste("vmeind_density ~ ", 
+fmla0 <- as.formula(paste("vmeind_density ~ ", 
                            all_names))
-fmla01
+fmla0
 ov.resp <- over(resp_spat["vmeind_density"], pred.pix[1:2])
 sw.rm = do.call(cbind, list(resp_spat@data["vmeind_density"], ov.resp
                             , ov.resp
@@ -70,7 +71,7 @@ sw.rm = do.call(cbind, list(resp_spat@data["vmeind_density"], ov.resp
 
 # new v
 ```{r}
-v <- left_join(v, ov.resp)
+v <- left_join(v, sw.rm)
 ```
 
 # fine tune RF parameters
@@ -85,9 +86,36 @@ print(rf_gridsearch)
 # train final model
 ```{r}
 mtry=rf_gridsearch$bestTune
-m1 <- ranger(fmla01, v[complete.cases(v),], mtry=mtry, 
+m1 <- ranger(fmla0, v[complete.cases(v),], mtry=mtry, 
                   min.node.size=2, sample.fraction=0.9930754, 
                   num.trees=150, importance = "impurity", seed=1, quantreg=TRUE)
 m1
 ```
+
+# test model
+Needs v_train and v_test from Notebook 4
+```{r}
+m2<-ranger(fmla0, v_train, mtry=mtry,  min.node.size=2, sample.fraction=0.9930754, num.trees=500, # these parameters need to have been fined-tuned on a previous step
+                   importance="impurity", seed=1, quantreg= TRUE)
+m2
+```
+
+```{r}
+vme.qrf2 <- predict(m2, cbind(
+  #swiss.dist0@data, 
+  v_test), 
+                     type="quantiles", quantiles=quantiles)$predictions
+## now more computational...
+v_test$vme.qrf2pr = vme.qrf2[,2]
+## s.d. of the prediction error:
+v_test$vme.qrf2var = (vme.qrf2[,3]-vme.qrf2[,1])/2
+
+predicted <- v_test$vme.qrf2pr
+observed <- v_test %>%
+  dplyr::select(vmeind_density)
+
+vecv <- vecv(pull(observed),pull(data.frame(unlist(predicted)))) # variance explained by cross-validation, conservative estimate to report
+vecv
+```
+
 
