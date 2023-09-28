@@ -5,7 +5,7 @@ output: html_notebook
 
 # Intro
 Inputs:  (1) MarVid report (aka "species_abundance.csv") (in downloads folder, or use copy from Data folder)
-(2) Taxonary (on HI onedrive folder, or use copy from Data folder)
+(2) Taxonary (on HI onedrive folder, or use copy from Data folder) (3) e
 Workflow: edit the vme of interest
 Outputs: (1) response data (aka "resp") as a simple dataframe. Includes the density of all vme indicators for the selected vme as well as total richness and total abundance.
 
