@@ -3,7 +3,7 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-inputs: v, resp_spat (whole video line level), pred
+inputs: v, resp_spat (whole video line level), pred (as spatial pixels)
 
 # Libraries etc
 ```{r}
@@ -12,12 +12,9 @@ library(tidyverse)
 library(rgdal)
 library(caret)
 library(spm)
+library(DescTools)
 
 quantiles = c((1-.682)/2, 0.5, 1-(1-.682)/2)
-## color legend:
-leg = c("#0000ff", "#0028d7", "#0050af", "#007986", "#00a15e", "#00ca35", 
-        "#00f20d", "#1aff00", "#43ff00", "#6bff00", "#94ff00", "#bcff00", 
-        "#e5ff00", "#fff200", "#ffca00", "#ffa100", "#ff7900", "#ff5000", "#ff2800", "#ff0000")
 ```
 
 # Inputs
@@ -36,7 +33,6 @@ resp_spat_vl <- readRDS(file.path(savepath, "resp_Spat_vl.rds"))
 ```
 
 # More inputs: pred
-comes with a bunch of other objects because loading whole workspace
 ```{r}
 #load(file.path(savepath,"1_Predictors_out.RData"))
 pred.pix <- readRDS(file.path(savepath,"pred.rds"))
@@ -71,39 +67,93 @@ sw.rm = do.call(cbind, list(resp_spat@data["vmeind_density"], ov.resp
 
 # new v
 ```{r}
-v <- left_join(v, sw.rm)
+v <- v %>% left_join(sw.rm) %>% filter(complete.cases(.))
 ```
 
-# fine tune RF parameters
+# fine tune mtry parameter
 ```{r}
 control <- trainControl(method="repeatedcv", number=10, repeats=3, search="grid")
 set.seed(1)
 tunegrid <- expand.grid(.mtry=c(1:30))
 rf_gridsearch <- train(fmla0, data=v, method="qrf", metric="Rsquared", tuneGrid=tunegrid, trControl=control)
 print(rf_gridsearch)
+mtry=rf_gridsearch$bestTune
 ```
 
-# train final model
+# train new model
+without case weights
 ```{r}
-mtry=rf_gridsearch$bestTune
-m1 <- ranger(fmla0, v[complete.cases(v),], mtry=mtry, 
-                  min.node.size=2, sample.fraction=0.9930754, 
-                  num.trees=150, importance = "impurity", seed=1, quantreg=TRUE)
+m1 <- ranger(formula = fmla0,
+             data = v,
+             mtry=mtry, 
+             min.node.size=2,
+             sample.fraction=0.9930754, 
+             num.trees=250,
+             importance = "impurity",
+             seed=1,
+             quantreg=TRUE,
+             respect.unordered.factors = "partition"
+             )
 m1
 ```
 
-# test model
-Needs v_train and v_test from Notebook 4
+with case weights
 ```{r}
-m2<-ranger(fmla0, v_train, mtry=mtry,  min.node.size=2, sample.fraction=0.9930754, num.trees=500, # these parameters need to have been fined-tuned on a previous step
-                   importance="impurity", seed=1, quantreg= TRUE)
+m2 <- ranger(formula = fmla0,
+             data = v,
+             mtry=mtry, 
+             min.node.size=2,
+             sample.fraction=0.9930754, 
+             num.trees=250,
+             importance = "impurity",
+             seed=1,
+             quantreg=TRUE,
+             respect.unordered.factors = "partition",
+             case.weights = as.integer(1/(v$sd_dens^2))
+             )
 m2
 ```
 
+# Split data for model testing
+split the data into two partitions where (1) video lines are kept together and (2) the testing data is biased towards intermediate to high-density observations
 ```{r}
-vme.qrf2 <- predict(m2, cbind(
-  #swiss.dist0@data, 
-  v_test), 
+n<-3 # n classes to stratify the response variable into
+keep=0.25 # proportion of observations in the low density class that will be treated normally
+p=0.5 # overall proportion of the dataset that should be used for testing the model
+
+v <- v %>% filter(complete.cases(.))
+
+
+# video.line is single column. extract or lookup from sample info
+video.line <- as.character(lookup(v$SampID, dplyr::select(sample_info, section, video.line), sample_info$video.line))
+
+v_test <- stratisplit(v, n, keep, p, as.factor(video.line))[[1]]
+v_train <- stratisplit(v, n, keep, p, as.factor(video.line))[[2]]
+
+rbind(hist(log(v_train$vmeind_density)), hist(log(v_test$vmeind_density)))
+
+```
+
+# test model
+```{r}
+m3 <- ranger(formula = fmla0,
+             data = v_train,
+             mtry=mtry, 
+             min.node.size=2,
+             sample.fraction=0.9930754, 
+             num.trees=250,
+             importance = "impurity",
+             seed=1,
+             quantreg=TRUE,
+             respect.unordered.factors = "partition",
+             case.weights = as.integer(1/(v$sd_dens^2))
+             )
+m3
+```
+
+# variance explained by cross-validation (from spm library)
+```{r}
+vme.qrf2 <- predict(m3,  v_test, 
                      type="quantiles", quantiles=quantiles)$predictions
 ## now more computational...
 v_test$vme.qrf2pr = vme.qrf2[,2]
@@ -118,4 +168,9 @@ vecv <- vecv(pull(observed),pull(data.frame(unlist(predicted)))) # variance expl
 vecv
 ```
 
+# concordance correlation coefficient
+```{r}
+ccc <- CCC(predicted, pull(observed))
+ccc$rho.c
+```
 
