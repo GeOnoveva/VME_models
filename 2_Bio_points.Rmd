@@ -52,12 +52,14 @@ Example: Burgos et al classification
 ```{r}
 print(unique(taxonary$VME_Burgos_etal_2020))
 ```
-## Do they have the same environmental niche, approximately? (Jonatan)
-Or are they within the same biotope, at least? Need to answer yes to one of these two questions before going ahead. If answer is no, then cut indicators out
+## Do they have the same environmental niche, approximately?
+Or are they within the same biotope, at least? Need to answer yes to one of these two questions before going ahead. If answer is no, then cut indicators out. This is done in a separate notebook. Return here after you have run it
 ```{r}
 # set vme
 vme <- "Hard bottom sponge aggregations"
-
+remove <- c("Craniella polyura", "Axinellidae")
+indicators <- taxonary$Reference_List[which(taxonary$VME_Burgos_etal_2020==vme)]
+indicators <- indicators[-which(indicators%in%remove)]
 ```
 
 ## Filter data by VME indicators
@@ -67,7 +69,7 @@ resp1 <- data %>% group_by(SampID) %>%
   summarize(tot_rich = length(SampID), tot_dens = sum(density))
   
   
-resp2 <- data %>% filter(taxon%in%taxonary$Reference_List[which(taxonary$VME_Burgos_etal_2020==vme)]) %>%
+resp2 <- data %>% filter(taxon%in%indicators) %>%
   group_by(SampID) %>%
   summarize(vmeind_density = sum(density))
 
@@ -85,7 +87,7 @@ hist(resp$vmeind_density)
 # Save output
 ```{r}
 rm(resp1, resp2)
-write.csv(resp, file.path(savepath, paste(vme,"resp.csv", collapse=" ")))
+write.csv(resp, file.path(savepath, paste(vme, "minus", paste(remove, collapse=", "), "resp.csv", collapse=" ")))
 ```
 
 
