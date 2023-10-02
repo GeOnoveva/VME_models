@@ -1,6 +1,6 @@
 vme <- "Hard bottom sponge aggregations"
 sp = taxonary %>% filter(VME_Burgos_etal_2020==vme) %>% select(Reference_List) %>% pull
-e <- read.csv(file.path(savepath, "e.csv"))
+e <- read.csv(file.path(savepath, "e.csv")) # e doesn't have sample ID!!!!!
 
 # obtain only rows of interest
 data_extract <- data %>% filter(taxon%in%sp) %>% left_join(e)
