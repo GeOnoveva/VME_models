@@ -27,9 +27,10 @@ v <- v %>%
       mutate_at(vars(  landscape, sedclass, seddan, sedmil    ), factor)
 ```
 
-# More inputs: resp spat at station level
+# More inputs: resp spat
 ```{r}
 resp_spat_vl <- readRDS(file.path(savepath, "resp_Spat_vl.rds"))
+resp_spat <- readOGR(file.path(savepath, paste(vme, "resp_spat.shp")))
 ```
 
 # More inputs: pred
