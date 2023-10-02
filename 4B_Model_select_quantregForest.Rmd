@@ -29,8 +29,8 @@ v <- v %>%
 
 # More inputs: resp spat
 ```{r}
-resp_spat_vl <- readRDS(file.path(savepath, "resp_Spat_vl.rds"))
-resp_spat <- readOGR(file.path(savepath, paste(vme, "resp_spat.shp")))
+resp_spat_vl <- readRDS(file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "),"resp_Spat_vl.rds")))
+resp_spat <- readOGR(file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "), "resp_spat.shp")))
 ```
 
 # More inputs: pred
@@ -56,23 +56,30 @@ resp.dist0 <-buffer.dist(resp_spat_vl["vmeind_density"],
                                  pred.pix[1], as.factor(1:nrow(resp_spat_vl))) 
 
 ov.resp = over(resp_spat["vmeind_density"], resp.dist0)
-all_names <- paste(c(names(resp.dist0), selvar), collapse="+")
-fmla0 <- as.formula(paste("vmeind_density ~ ", 
-                           all_names))
-fmla0
+
 ov.resp <- over(resp_spat["vmeind_density"], pred.pix[1:2])
 sw.rm = do.call(cbind, list(resp_spat@data["vmeind_density"], ov.resp
                             , ov.resp
                             ))
+
+v <- v %>% left_join(sw.rm) %>% filter(complete.cases(.))
 ```
 
-# new v
+# Set model formula
 ```{r}
-v <- v %>% left_join(sw.rm) %>% filter(complete.cases(.))
+all_names <- paste(#c(names(resp.dist0),
+                     selvar), collapse="+")
+fmla0 <- as.formula(paste("vmeind_density ~ ", 
+                           all_names))
+fmla0
 ```
 
 # fine tune mtry parameter
 ```{r}
+# configure multicore
+library(doMC)
+registerDoMC(cores=4)
+
 control <- trainControl(method="repeatedcv", number=10, repeats=3, search="grid")
 set.seed(1)
 tunegrid <- expand.grid(.mtry=c(1:30))
