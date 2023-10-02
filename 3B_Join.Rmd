@@ -9,8 +9,8 @@ output: clean v table
 # Inputs
 ```{r}
 e <- read.csv(file.path(savepath, "e.csv"))
-resp <- read.csv(file.path(savepath, paste(vme,"resp new.csv", collapse=" ")))
-stdev <- read.csv(file.path(savepath, "st_dev_vme_dens.csv"))
+resp <- read.csv(file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "),"resp new.csv", collapse=" ")))
+stdev <- read.csv(file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "),"st_dev_vme_dens.csv")))
 ```
 
 # join predictor values, response values, and standard deviation values
