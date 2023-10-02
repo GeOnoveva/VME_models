@@ -1,9 +1,11 @@
+library(dplyr)
+
 vme <- "Hard bottom sponge aggregations"
 sp = taxonary %>% filter(VME_Burgos_etal_2020==vme) %>% select(Reference_List) %>% pull
-e <- read.csv(file.path(savepath, "e.csv")) # e doesn't have sample ID!!!!!
+e <- read.csv(file.path(savepath, "e.csv"))
 
 # obtain only rows of interest
-data_extract <- data %>% filter(taxon%in%sp) %>% left_join(e)
+data_extract <- data %>% filter(taxon%in%sp) %>% left_join(e) # unexpected many-to-many relationships found!!!
   
 # create empty threshold vector
 threshold <- vector(mode = "numeric",
@@ -11,7 +13,7 @@ threshold <- vector(mode = "numeric",
   
 for (i in 1:length(sp)){
     
-  threshold[i] <- (data %>% filter(taxon==sp[i]) %>% pull(density) %>% sort %>%  quantile(.))[2]
+  threshold[i] <- (data %>% filter(taxon==sp[i]) %>% pull(density) %>% sort %>%  quantile(.))[3]
     
 }
   
