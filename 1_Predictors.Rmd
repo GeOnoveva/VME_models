@@ -80,6 +80,7 @@ sample_info <- sample_info %>% rename(video.line=VL, section=SampID2, mean.latit
 ## Extract
 ```{r}
 e <- raster::extract(pred,dplyr::select(sample_info, mean.longitude, mean.latitude), sp=TRUE)
+e <- cbind(e,sample_info)
 ```
 
 # Save outputs
