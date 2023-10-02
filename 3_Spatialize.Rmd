@@ -16,15 +16,16 @@ library(rgdal)
 library(raster)
 library(qdapTools)
 library(RPostgreSQL)
+vme <- "Hard bottom sponge aggregations"
+remove <- c("Craniella polyura", "Axinellidae")
+indicators <- taxonary$Reference_List[which(taxonary$VME_Burgos_etal_2020==vme)]
+indicators <- indicators[-which(indicators%in%remove)]
 ```
 
 
 # Inputs
 ```{r}
-resp <- read.csv(file.path(savepath, paste(vme,"resp.csv", collapse=" ")))
-
-# set vme (again!)
-vme <- "Hard bottom sponge aggregations"
+resp <- read.csv(file.path(savepath, paste(vme, "minus", paste(remove, collapse=", "), "resp.csv", collapse=" ")))
 ```
 
 ## Get sample info
@@ -64,7 +65,8 @@ sample_info <- sample_info %>% rename(video.line=VL, section=SampID2, mean.latit
 respw <- resp %>% mutate(video.line=sub("_.*", "", SampID))
 
 respw <- respw %>% group_by(video.line) %>%
-  summarize(mean_rich = mean(tot_rich), mean_dens = mean(tot_dens), sd_dens = sd(tot_dens))
+  summarize(mean_rich = mean(tot_rich), mean_dens = mean(tot_dens), sd_dens = sd(tot_dens)) %>%
+  mutate(video.line = as.integer(video.line))
 
 head(respw)
 ```
@@ -84,7 +86,7 @@ resp_spat1 <- resp %>% mutate(mean_long=as.numeric(pull(
 resp_spat <- SpatialPointsDataFrame(dplyr::select(resp_spat1, c(mean_long, mean_lat)), dplyr::select(resp_spat1, c(SampID,tot_rich, tot_dens, vmeind_density)))  
                       #%>% utmize
 
-writeOGR(resp_spat, savepath, paste(vme, "resp_spat"), driver = "ESRI Shapefile", overwrite_layer = TRUE)
+writeOGR(resp_spat, savepath, paste(vme, "minus", paste(remove, collapse=", "), "resp_spat"), driver = "ESRI Shapefile", overwrite_layer = TRUE)
 
 # make resp have the same number of rows as resp_spat:
 
@@ -123,7 +125,7 @@ coords <- coordinates(dplyr::select(resp_spat1, c(mean_long, mean_lat)))
 resp_spat_vl <- SpatialPointsDataFrame(coords, dplyr::select(resp_spat1, c(video.line,mean_rich, vmeind_density, sd_dens))) %>%
                        utmize
 
-writeOGR(resp_spat_vl, savepath, paste(vme, "resp_spat_vl"), driver = "ESRI Shapefile", overwrite_layer = TRUE)
+writeOGR(resp_spat_vl, savepath, paste(vme, "minus", paste(remove, collapse=", "),  "resp_spat_vl"), driver = "ESRI Shapefile", overwrite_layer = TRUE)
 
 # make resp have the same number of rows as resp_spat:
 
@@ -134,7 +136,8 @@ respw <- respw %>% filter(video.line%in%resp_spat@data$video.line)
 # Save outputs
 ```{r}
 rm(resp_spat1)
-write.csv(resp, file.path(savepath, paste(vme,"resp new.csv", collapse=" ")))
-write.csv(respw, file.path(savepath, "st_dev_vme_dens.csv"), row.names = FALSE)
-saveRDS(resp_spat_vl, file.path(savepath, "resp_Spat_vl.rds"))
+write.csv(resp, file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "),"resp new.csv", collapse=" ")))
+write.csv(respw, file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "), "st_dev_vme_dens.csv")), row.names = FALSE)
+saveRDS(resp_spat_vl, file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "), "resp_Spat_vl.rds")))
+saveRDS(resp_spat, file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "), "resp_spat.rds")))
 ```
