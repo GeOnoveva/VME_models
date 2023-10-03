@@ -1,4 +1,5 @@
 library(dplyr)
+library(caret)
 
 vme <- "Hard bottom sponge aggregations"
 sp = taxonary %>% filter(VME_Burgos_etal_2020==vme) %>% select(Reference_List) %>% pull
@@ -143,10 +144,21 @@ data_extract_merged_reduced <- data_extract_merged %>% filter(density>threshold)
 
 data_extract_merged_reduced <- data_extract_merged_reduced %>% filter(complete.cases(.))
 
-p <- ggplot(data_extract_merged_reduced, aes(x=temp_mean, color = taxon)) + 
-  geom_density()
+library(corrplot)
 
-p <- ggplot(fish, aes(x=bathy, color = taxon)) + 
-  geom_density()
+df <- e %>% dplyr::select(-c(1,119:123)) %>% dplyr::select(!BO22_icecoverltmin_ss) %>% filter(complete.cases(.))
 
-p
+
+# remove zero variance predictors
+zv <- apply(df, 2, function(x) length(unique(x)) == 1)
+dfr <- df[, !zv]
+n=length(colnames(dfr))
+
+# remove highly colinear
+
+correlationMatrix <- cor(dfr[,1:n],use="complete.obs")
+namesToDrop <- findCorrelation(cor(dfr, use="pairwise.complete.obs"), cutoff = 0.8, names=TRUE)
+
+data_extract_merged_reduced_new <- data_extract_merged_reduced %>%
+  select(-na.omit(match(namesToDrop, colnames(data_extract_merged_reduced))))
+
