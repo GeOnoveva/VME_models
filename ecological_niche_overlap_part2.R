@@ -1,35 +1,50 @@
 library(nicheROVER)
 data(fish) # 4 fish, 3 isotopes
 #aggregate(fish[2:4], fish[1], mean) # isotope means calculated for each species
+
 nsamples <- 1000
 
-fish.par <- tapply(1:nrow(fish), fish$species,
-                   function(ii) niw.post(nsamples = nsamples, X = fish[ii,2:4]))
+#fish.par <- tapply(1:nrow(fish), fish$species,
+#                   function(ii) niw.post(nsamples = nsamples, X = fish[ii,2:4]))
 
 
-fish<-data_extract_merged_reduced
-fish$taxon<- as.factor(as.character(fish$taxon))
+d<-data_extract_merged_reduced_new
 
-# remove colinear variables
 
-fish <- fish %>% filter(!taxon%in%c("Polymastia grimaldii", "Phakellia ventilabrum",
-                                    "Tetilla sp.", "Craniella sp."))
+zv <- apply(d, 2, function(x) length(unique(x)) == 1)
+d <- d[, !zv]
+d <- d %>% filter(!taxon%in%c( "Phakellia ventilabrum",
+                                     "Polymastia grimaldii",
+                                     "Tetilla sp."))
 
-fish.par <- tapply(1:nrow(fish), fish$taxon,
-                   function(ii) niw.post(nsamples = nsamples, X = fish[ii,2:116]))
+d <- d %>% select(-c(  landscape, sedclass, seddan, sedmil, BO22_icecovermean_ss, BO22_lightbotltmax_bdmean,
+                             BO22_ppltmin_bdmean, BO22_ppltmin_ss))
+
+d$taxon<- as.factor(as.character(d$taxon))
+
+
+p <- ggplot(d, aes(x=sand         , color = taxon)) + 
+  geom_density() +scale_color_brewer(palette="Set3")
+p
+
+
+
+d.par <- tapply(1:nrow(d), d$taxon,
+                   function(ii) niw.post(nsamples = nsamples, X = d[ii,2: dim(d)[2]]))
 
 # Overlap calculation.  use nsamples = nprob = 10000 (1e4) for higher accuracy.
 # the variable over.stat can be supplied directly to the overlap.plot function
 
-over.stat <- overlap(fish.par, nreps = nsamples, nprob = 1e3, alpha = c(.95, 0.99))
+over.stat <- overlap(d.par, nreps = nsamples, nprob = 1e3, alpha = c(.95, 0.99))
 
 #The mean overlap metrics calculated across iteratations for both niche 
 #region sizes (alpha = .95 and alpha = .99) can be calculated and displayed in an array.
 over.mean <- apply(over.stat, c(1:2,4), mean)*100
-round(over.mean, 2)
 
+coex<-round(over.mean, 2)[,,1] # for alpha=95%
 
+result <- cbind(rowMeans(data.frame(coex), na.rm=TRUE), colMeans(data.frame(coex), na.rm=TRUE)) %>%
+  data.frame 
 
-
-# load pred out environment, which contains e
-
+rogue <- filter(result, X1<10 & X2<10) %>% row.names(.)
+rogue
