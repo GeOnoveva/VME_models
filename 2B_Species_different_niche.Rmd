@@ -19,7 +19,7 @@ e <- read.csv(file.path(savepath, "e.csv"))
 
 # Parameters
 quant <- 3 # 3 is the median of the distribution
-nsamples <- 100000
+nsamples <- 10000
 toler <- 10
 ```
 
@@ -203,7 +203,8 @@ d <- d %>% select(-c(  landscape, sedclass, seddan, sedmil, #factor variables
                        BO22_icecovermean_ss,
                        BO22_lightbotltmax_bdmean,
                        BO22_ppltmin_bdmean,
-                       BO22_ppltmin_ss)) 
+                       BO22_ppltmin_ss,
+                       gravel)) 
 
 d$taxon<- as.factor(as.character(d$taxon))
 ```
@@ -211,7 +212,7 @@ d$taxon<- as.factor(as.character(d$taxon))
 # Visualize it
 ```{r}
 #var = "bathy" doesn't work??
-p <- ggplot(d, aes(x=bathy, color = taxon)) + 
+p <- ggplot(d, aes(x=CDirsd_Robinson, color = taxon)) + 
   geom_density()
 p
 ```
