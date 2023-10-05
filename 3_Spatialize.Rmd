@@ -129,7 +129,7 @@ writeOGR(resp_spat_vl, savepath, paste(vme, "minus", paste(remove, collapse=", "
 
 # make resp have the same number of rows as resp_spat:
 
-respw <- respw %>% filter(video.line%in%resp_spat@data$video.line)
+respw <- respw %>% filter(video.line%in%resp_spat_vl@data$video.line)
 ```
 
 
