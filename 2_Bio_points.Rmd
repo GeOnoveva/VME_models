@@ -57,10 +57,10 @@ Or are they within the same biotope, at least? Need to answer yes to one of thes
 ```{r}
 # set vme
 vme <- "Hard bottom sponge aggregations"
-removesp <- ""
-#removesp <- c("Craniella polyura", "Axinellidae")
+remove <- ""
 indicators <- taxonary$Reference_List[which(taxonary$VME_Burgos_etal_2020==vme)]
-indicators <- indicators[-which(indicators%in%remove)]
+#indicators <- indicators[-which(indicators%in%remove)]
+indicators
 ```
 
 ## Filter data by VME indicators
