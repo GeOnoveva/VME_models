@@ -3,7 +3,9 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-inputs: v, resp_spat (whole video line level), pred (as spatial pixels)
+inputs: v; resp_spat (whole video line level), pred (as spatial pixels) (the latter two only needed if generating spatial variables)
+Workflow: feature selection, parameter fine tuning, train final model with and without weights
+outputs: m1, m2, m3, vecv, and ccc
 
 # Libraries etc
 ```{r}
@@ -14,9 +16,10 @@ library(caret)
 library(spm)
 library(DescTools)
 library(doParallel)
-library(doMC)
+#library(doMC) # unix only
 
 quantiles = c((1-.682)/2, 0.5, 1-(1-.682)/2)
+remove=""
 ```
 
 # Inputs
@@ -32,12 +35,14 @@ v <- v %>% filter(complete.cases(.))
 ```
 
 # More inputs: resp spat
+only needed if generating spatial variables!!
 ```{r}
 resp_spat_vl <- readRDS(file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "),"resp_Spat_vl.rds")))
-resp_spat <- readOGR(file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "), "resp_spat.shp")))
+#resp_spat <- readRDS(file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "), "resp_spat.rds")))
 ```
 
 # More inputs: pred
+only needed if generating spatial variables!!
 ```{r}
 #load(file.path(savepath,"1_Predictors_out.RData"))
 pred.pix <- readRDS(file.path(savepath,"pred.rds"))
@@ -83,7 +88,9 @@ fmla0
 # fine tune mtry parameter
 ```{r}
 # configure multicore
-registerDoMC(cores=cl)
+#registerDoMC(cores=12)
+cl <- makeCluster(detectCores(), type='PSOCK')
+registerDoParallel(cl)
 
 control <- trainControl(method="repeatedcv", number=10, repeats=3, search="grid")
 set.seed(1)
