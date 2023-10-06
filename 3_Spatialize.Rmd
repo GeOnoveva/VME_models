@@ -6,10 +6,11 @@ output: html_notebook
 # Intro
 
 inputs: (1) resp (in intermediate folder) (2) sample info
-workflow: 
-outputs: cleaned up resp (only samples with metadata) and local variability of vme density
+workflow: make resp into a spatial object and remove samples that lack spatial data; also, summarize density at whole video line level to use later as weight
+outputs: cleaned up resp (only samples with metadata) ("resp new.csv") and local variability of vme density ("st_dev_vme_dens.csv")
 
 # Libraries
+And parameters
 ```{r}
 library(dplyr)
 library(rgdal)
@@ -17,9 +18,10 @@ library(raster)
 library(qdapTools)
 library(RPostgreSQL)
 vme <- "Hard bottom sponge aggregations"
-remove <- c("Craniella polyura", "Axinellidae")
+remove <- ""
+#remove <- c("Craniella polyura", "Axinellidae")
 indicators <- taxonary$Reference_List[which(taxonary$VME_Burgos_etal_2020==vme)]
-indicators <- indicators[-which(indicators%in%remove)]
+#indicators <- indicators[-which(indicators%in%remove)]
 ```
 
 
@@ -58,7 +60,6 @@ sample_info <- sample_info %>% rename(video.line=VL, section=SampID2, mean.latit
   dplyr::select(video.line, section, mean.latitude, mean.longitude, SampID)
 # sample_info <- sample_info %>% makesampid # only needed when we switch to using marvid sections
 ```
-
 
 # Aggregate to whole video line and calculate sd
 ```{r}
