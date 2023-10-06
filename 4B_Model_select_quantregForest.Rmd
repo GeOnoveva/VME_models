@@ -13,6 +13,8 @@ library(rgdal)
 library(caret)
 library(spm)
 library(DescTools)
+library(doParallel)
+library(doMC)
 
 quantiles = c((1-.682)/2, 0.5, 1-(1-.682)/2)
 ```
@@ -25,6 +27,8 @@ v <- read.csv(file.path(savepath, "v.csv"))
 
 v <- v %>% 
       mutate_at(vars(  landscape, sedclass, seddan, sedmil    ), factor)
+
+v <- v %>% filter(complete.cases(.))
 ```
 
 # More inputs: resp spat
@@ -42,6 +46,8 @@ pred.pix1 <- subset(pred.pix, complete.cases(pred.pix@data))
 
 # select environmental variables
 ```{r}
+cl <- makeCluster(detectCores(), type='PSOCK')
+registerDoParallel(cl)
 control <- rfeControl(functions=rfFuncs, method="cv", number=10)
 # run the RFE algorithm
 results <- rfe(v[,8:121], v[,4], sizes=c(1:113), rfeControl=control)
@@ -68,7 +74,7 @@ v <- v %>% left_join(sw.rm) %>% filter(complete.cases(.))
 # Set model formula
 ```{r}
 all_names <- paste(#c(names(resp.dist0),
-                     selvar), collapse="+")
+                     selvar, collapse="+")
 fmla0 <- as.formula(paste("vmeind_density ~ ", 
                            all_names))
 fmla0
@@ -77,8 +83,7 @@ fmla0
 # fine tune mtry parameter
 ```{r}
 # configure multicore
-library(doMC)
-registerDoMC(cores=4)
+registerDoMC(cores=cl)
 
 control <- trainControl(method="repeatedcv", number=10, repeats=3, search="grid")
 set.seed(1)
@@ -128,8 +133,6 @@ split the data into two partitions where (1) video lines are kept together and (
 n<-3 # n classes to stratify the response variable into
 keep=0.25 # proportion of observations in the low density class that will be treated normally
 p=0.5 # overall proportion of the dataset that should be used for testing the model
-
-v <- v %>% filter(complete.cases(.))
 
 
 # video.line is single column. extract or lookup from sample info
