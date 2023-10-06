@@ -20,17 +20,17 @@ leg = c("#0000ff", "#0028d7", "#0050af", "#007986", "#00a15e", "#00ca35",
 
 # inputs
 ```{r}
-
+#if m3 performance was "similar" to m2, use m2 (same parameters, all data)
 ```
 
 # Select model
 ```{r}
-m1 <- m1
+m <- m2
 ```
 
 # Using spatial pixels
 ```{r}
-vme.rfd1 <- predict(m1, cbind(
+vme.rfd1 <- predict(m, cbind(
   resp.dist0@data, 
   pred.pix@data), 
                      type="quantiles", quantiles=quantiles)$predictions
@@ -54,8 +54,13 @@ points(resp_spat, pch="+")
 
 # save outputs
 ```{r}
-writeGDAL(swiss1km["rainfall_rfd1"], fname = "../RF_vs_kriging/results/rainfall/pred_rainfall_RFsp.tif", options = c("COMPRESS=DEFLATE"))
-writeGDAL(swiss1km["rainfall_rfd1_var"], fname = "../RF_vs_kriging/results/rainfall/pred.var_rainfall_RFsp.tif", options = c("COMPRESS=DEFLATE"))
+writeGDAL(pred.pix["vme_dens"],
+          fname = file.path(outpath, paste(vme,"minus", paste(remove, collapse=", "), "pred.tif")),
+          options = c("COMPRESS=DEFLATE"))
+
+writeGDAL(pred.pix["vme_dens_var"],
+          fname = file.path(outpath, paste(vme,"minus", paste(remove, collapse=", "), "pred var.tif")),
+          options = c("COMPRESS=DEFLATE"))
 
 ```
 
