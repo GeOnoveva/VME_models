@@ -9,6 +9,8 @@ outputs: m1, m2, m3, vecv, and ccc
 
 # Libraries etc
 ```{r}
+library(ranger)
+library(groupdata2)
 library(quantregForest)
 library(tidyverse)
 library(rgdal)
@@ -94,7 +96,7 @@ registerDoParallel(cl)
 
 control <- trainControl(method="repeatedcv", number=10, repeats=3, search="grid")
 set.seed(1)
-tunegrid <- expand.grid(.mtry=c(1:30))
+tunegrid <- expand.grid(.mtry=c(1:51))
 rf_gridsearch <- train(fmla0, data=v, method="qrf", metric="Rsquared", tuneGrid=tunegrid, trControl=control)
 print(rf_gridsearch)
 mtry=rf_gridsearch$bestTune
@@ -163,8 +165,8 @@ m3 <- ranger(formula = fmla0,
              importance = "impurity",
              seed=1,
              quantreg=TRUE,
-             respect.unordered.factors = "partition",
-             case.weights = as.integer(1/(v$sd_dens^2))
+             respect.unordered.factors = "partition"#,
+             #case.weights = as.integer(1/(v$sd_dens^2))
              )
 m3
 ```
@@ -188,7 +190,7 @@ vecv
 
 # concordance correlation coefficient
 ```{r}
-ccc <- CCC(predicted, pull(observed))
+ccc <- epi.ccc(predicted, pull(observed))
 ccc$rho.c
 ```
 
