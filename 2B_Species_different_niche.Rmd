@@ -19,14 +19,16 @@ e <- read.csv(file.path(savepath, "e.csv"))
 
 # Parameters
 quant <- 3 # 3 is the median of the distribution
-nsamples <- 10000
+nsamples <- 1000
 toler <- 10
+sp
 ```
 
 # Filter data
 ```{r}
 # obtain only rows of interest
 data_extract <- data %>% filter(taxon%in%sp) %>% left_join(e) # unexpected many-to-many relationships found!!!
+hist(log(data_extract$density[which(data_extract$taxon=="Antho dichotoma")]))
 ```
 
 # Define the density threshold for each species
@@ -41,6 +43,7 @@ for (i in 1:length(sp)){
 }
 
 thresholdt <- data.frame(cbind(sp, threshold))
+thresholdt
 ```
 
 ## Further filter the data
@@ -166,6 +169,7 @@ data_extract_merged_reduced <- data_extract_merged %>% filter(density>threshold)
          v_bott_mean    )
 
 data_extract_merged_reduced <- data_extract_merged_reduced %>% filter(complete.cases(.))
+data_extract_merged_reduced
 ```
 
 # Remove variables
@@ -185,6 +189,7 @@ namesToDrop <- c(namesToDrop, names(which(zv)))
 
 data_extract_merged_reduced_new <- data_extract_merged_reduced %>%
   select(-na.omit(match(namesToDrop, colnames(data_extract_merged_reduced))))
+data_extract_merged_reduced_new
 ```
 
 # Identify species with too few observations
@@ -228,17 +233,20 @@ d.par <- tapply(1:nrow(d), d$taxon,
 
 over.stat <- overlap(d.par, nreps = nsamples, nprob = 1e3, alpha = c(.95, 0.99))
 
-#The mean overlap metrics calculated across iteratations for both niche 
+#The mean overlap metrics calculated across iterations for both niche 
 #region sizes (alpha = .95 and alpha = .99) can be calculated and displayed in an array.
 over.mean <- apply(over.stat, c(1:2,4), mean)*100
-
 coex<-round(over.mean, 2)[,,1] # for alpha=95%
-
+coex
+```
+```{r}
 result <- cbind(rowMeans(data.frame(coex), na.rm=TRUE), colMeans(data.frame(coex), na.rm=TRUE)) %>%
   data.frame 
+result
+```
 
+```{r}
 rogue <- filter(result, X1<toler & X2<toler) %>% row.names(.)
 rogue
-
 ```
 
