@@ -18,8 +18,8 @@ e <- read.csv(file.path(savepath, "e.csv"))
 # data, from fake Marvid report script
 
 # Parameters
-quant <- 3 # 3 is the median of the distribution
-nsamples <- 1000
+perc <- 1 # 1 is 1st percentile, 2 is 5th percentile
+nsamples <- 10000
 toler <- 10
 sp
 ```
@@ -32,14 +32,14 @@ hist(log(data_extract$density[which(data_extract$taxon=="Antho dichotoma")]))
 ```
 
 # Define the density threshold for each species
-This intends to separate thriving populations from occasional occurrences. Needs to set the desired quantile.
+This intends to separate thriving populations from occasional occurrences. Needs to set the desired quantile. Use 1 and 5 %!!!
 ```{r}
 # create empty threshold vector
 threshold <- vector(mode = "numeric",
                    length = length(sp))
 
 for (i in 1:length(sp)){
-  threshold[i] <- (data %>% filter(taxon==sp[i]) %>% pull(density) %>% sort %>%  quantile(.))[quant]
+  threshold[i] <- (data %>% filter(taxon==sp[i]) %>% pull(density) %>% sort %>%  quantile(., c(.01, .05)))[perc]
 }
 
 thresholdt <- data.frame(cbind(sp, threshold))
@@ -195,7 +195,8 @@ data_extract_merged_reduced_new
 # Identify species with too few observations
 IN PROGRESS
 ```{r}
-few <- c( "Phakellia ventilabrum", "Polymastia grimaldii", "Tetilla sp.")
+few <- c( "Phakellia ventilabrum", "Polymastia grimaldii", "Tetilla sp."
+        ) 
 ```
 
 ## Calculate niche overlap
@@ -241,12 +242,18 @@ coex
 ```
 ```{r}
 result <- cbind(rowMeans(data.frame(coex), na.rm=TRUE), colMeans(data.frame(coex), na.rm=TRUE)) %>%
-  data.frame 
+  data.frame %>%
+  arrange(X2)
 result
 ```
-
+# find the most "indicative" indicators
+Those with large values in second column have the most species within them (umbrella value?).
+Find species with largest "umbrella Value", take out and re-calculate the means. Count how many stations remain.
 ```{r}
-rogue <- filter(result, X1<toler & X2<toler) %>% row.names(.)
+rogue <- filter(result, X2<toler) %>% row.names(.)
 rogue
 ```
+
+
+
 
