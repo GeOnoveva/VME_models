@@ -149,5 +149,5 @@ write.csv(dplyr::select(v,
                         temp_std,
                         u_bott_mean,
                         v_bott_mean		    
-			   ), file.path(savepath, "v.csv"), row.names = FALSE)
+			   ), file.path(savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "v.csv", collapse=" ")), row.names = FALSE)
 ```
