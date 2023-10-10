@@ -96,7 +96,7 @@ registerDoParallel(cl)
 
 control <- trainControl(method="repeatedcv", number=10, repeats=3, search="grid")
 set.seed(1)
-tunegrid <- expand.grid(.mtry=c(1:51))
+tunegrid <- expand.grid(.mtry=c(1:length(selvar)))
 rf_gridsearch <- train(fmla0, data=v, method="qrf", metric="Rsquared", tuneGrid=tunegrid, trControl=control)
 print(rf_gridsearch)
 mtry=rf_gridsearch$bestTune
