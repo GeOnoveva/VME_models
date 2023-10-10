@@ -27,7 +27,7 @@ indicators <- taxonary$Reference_List[which(taxonary$VME_Burgos_etal_2020==vme)]
 
 # Inputs
 ```{r}
-resp <- read.csv(file.path(savepath, paste(vme, "minus", paste(remove, collapse=", "), "resp.csv", collapse=" ")))
+resp <- read.csv(file.path(savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "resp.csv", collapse=" ")))
 ```
 
 ## Get sample info
@@ -87,7 +87,7 @@ resp_spat1 <- resp %>% mutate(mean_long=as.numeric(pull(
 resp_spat <- SpatialPointsDataFrame(dplyr::select(resp_spat1, c(mean_long, mean_lat)), dplyr::select(resp_spat1, c(SampID,tot_rich, tot_dens, vmeind_density)))  
                       #%>% utmize
 
-writeOGR(resp_spat, savepath, paste(vme, "minus", paste(remove, collapse=", "), "resp_spat"), driver = "ESRI Shapefile", overwrite_layer = TRUE)
+writeOGR(resp_spat, savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "resp_spat"), driver = "ESRI Shapefile", overwrite_layer = TRUE)
 
 # make resp have the same number of rows as resp_spat:
 
@@ -126,7 +126,7 @@ coords <- coordinates(dplyr::select(resp_spat1, c(mean_long, mean_lat)))
 resp_spat_vl <- SpatialPointsDataFrame(coords, dplyr::select(resp_spat1, c(video.line,mean_rich, vmeind_density, sd_dens))) %>%
                        utmize
 
-writeOGR(resp_spat_vl, savepath, paste(vme, "minus", paste(remove, collapse=", "),  "resp_spat_vl"), driver = "ESRI Shapefile", overwrite_layer = TRUE)
+writeOGR(resp_spat_vl, savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "),  "resp_spat_vl"), driver = "ESRI Shapefile", overwrite_layer = TRUE)
 
 # make resp have the same number of rows as resp_spat:
 
@@ -137,8 +137,8 @@ respw <- respw %>% filter(video.line%in%resp_spat_vl@data$video.line)
 # Save outputs
 ```{r}
 rm(resp_spat1)
-write.csv(resp, file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "),"resp new.csv", collapse=" ")))
-write.csv(respw, file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "), "st_dev_vme_dens.csv")), row.names = FALSE)
-saveRDS(resp_spat_vl, file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "), "resp_Spat_vl.rds")))
-saveRDS(resp_spat, file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "), "resp_spat.rds")))
+write.csv(resp, file.path(savepath, paste(vme,"minus", paste(substr(remove, 1,7), collapse=", "),"resp new.csv", collapse=" ")))
+write.csv(respw, file.path(savepath, paste(vme,"minus", paste(substr(remove, 1,7), collapse=", "), "st_dev_vme_dens.csv")), row.names = FALSE)
+saveRDS(resp_spat_vl, file.path(savepath, paste(vme,"minus", paste(substr(remove, 1,7), collapse=", "), "resp_Spat_vl.rds")))
+saveRDS(resp_spat, file.path(savepath, paste(vme,"minus", paste(substr(remove, 1,7), collapse=", "), "resp_spat.rds")))
 ```
