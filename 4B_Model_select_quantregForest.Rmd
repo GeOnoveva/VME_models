@@ -27,7 +27,7 @@ remove=""
 # Inputs
 ```{r}
 # get v (read)
-v <- read.csv(file.path(savepath, "v.csv"))
+v <- read.csv(file.path(savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "v.csv", collapse=" ")))
 # str(v)
 
 v <- v %>% 
