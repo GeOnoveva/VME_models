@@ -39,8 +39,8 @@ v <- v %>% filter(complete.cases(.))
 # More inputs: resp spat
 only needed if generating spatial variables!!
 ```{r}
-resp_spat_vl <- readRDS(file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "),"resp_Spat_vl.rds")))
-#resp_spat <- readRDS(file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "), "resp_spat.rds")))
+resp_spat_vl <- readRDS(file.path(savepath, paste(vme,"minus", paste(substr(remove, 1,7), collapse=", "),"resp_Spat_vl.rds")))
+#resp_spat <- readRDS(file.path(savepath, paste(vme,"minus", paste(substr(remove, 1,7), collapse=", "), "resp_spat.rds")))
 ```
 
 # More inputs: pred
