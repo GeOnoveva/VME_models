@@ -88,7 +88,7 @@ hist(resp$vmeind_density)
 # Save output
 ```{r}
 rm(resp1, resp2)
-write.csv(resp, file.path(savepath, paste(vme, "minus", paste(remove, collapse=", "), "resp.csv", collapse=" ")))
+write.csv(resp, file.path(savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "resp.csv", collapse=" ")))
 ```
 
 
