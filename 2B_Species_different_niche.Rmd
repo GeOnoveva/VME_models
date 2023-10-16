@@ -243,12 +243,13 @@ coex
 ```{r}
 result <- cbind(rowMeans(data.frame(coex), na.rm=TRUE), colMeans(data.frame(coex), na.rm=TRUE)) %>%
   data.frame %>%
-  arrange(X2)
+  arrange(X1)
 result
 ```
 # find the most "indicative" indicators
 Those with large values in second column have the most species within them (umbrella value?).
 Find species with largest "umbrella Value", take out and re-calculate the means. Count how many stations remain.
+New idea: the larger the value in the second column, the more generalist the species (?). Model performace deacreases when eliminating from the group species with low value in X2 (e.g., Craniella polyura, Phakellia/Axinella)
 ```{r}
 rogue <- filter(result, X2<toler) %>% row.names(.)
 rogue
