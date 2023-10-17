@@ -1,20 +1,27 @@
 ---
 title: "Metadata"
-output: pdf_document
 date: "`r Sys.Date()`"
+output: pdf_document
 ---
 
 # Introduction
 
-Here is the summary for the model blah blah
-
-# Environment
 ```{r}
-# load environment
-load("4_Model_select_out.RData")
+library(readxl)
+Data <- "G:/R_projects/VH_MarVid/Data" # when running from Server
+# Taxonary
+taxonary <- read_xlsx(file.path(Data,"Taxonary.xlsx"), sheet = 1) # needs to be closed
+# set vme
+vme <- "Hard bottom sponge aggregations"
+remove <- c("Mycale lingua", "Phakellia sp.", "Axinellidae", "Axinella infundibuliformis")
+indicators <- taxonary$Reference_List[which(taxonary$VME_Burgos_etal_2020==vme)]
+indicators <- indicators[-which(indicators%in%remove)]
+indicators
 ```
 
-# Report model fit
+Here is the summary for the model for vme 
+
 ```{r}
-vecv
+vme
 ```
+
