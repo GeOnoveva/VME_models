@@ -13,7 +13,7 @@ library(corrplot)
 # Inputs
 ```{r}
 vme <- "Hard bottom sponge aggregations"
-sp = taxonary %>% filter(VME_Burgos_etal_2020==vme) %>% select(Reference_List) %>% pull
+sp = taxonary %>% filter(VME_Burgos_etal_2020==vme) %>% dplyr::select(Reference_List) %>% pull
 e <- read.csv(file.path(savepath, "e.csv"))
 # data, from fake Marvid report script
 
