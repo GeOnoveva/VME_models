@@ -190,7 +190,11 @@ vecv
 
 # concordance correlation coefficient
 ```{r}
-ccc <- epi.ccc(predicted, pull(observed))
-ccc$rho.c
+ccc <- ccc_vec(pull(observed),predicted)
+ccc
+```
+# Save outputs
+```{r}
+saveRDS(m3, file = file.path(outpath, paste(vme, "model.rda" )))
 ```
 
