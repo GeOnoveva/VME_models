@@ -11,7 +11,6 @@ This script can be run as soon as environmental layers for new areas are availab
 # Libraries
 ```{r}
 library(raster)
-library(rgdal)
 ## color legend:
 leg = c("#0000ff", "#0028d7", "#0050af", "#007986", "#00a15e", "#00ca35", 
         "#00f20d", "#1aff00", "#43ff00", "#6bff00", "#94ff00", "#bcff00", 
@@ -25,29 +24,29 @@ leg = c("#0000ff", "#0028d7", "#0050af", "#007986", "#00a15e", "#00ca35",
 
 # Select model
 ```{r}
-m <- m2
+m <- readRDS(m3, file = file.path(outpath, paste(vme, "model.rda" )))
 ```
 
 # Using spatial pixels
 ```{r}
 vme.rfd1 <- predict(m, cbind(
-  resp.dist0@data, 
-  pred.pix@data), 
+  #resp.dist0@data, 
+  pred.pix1@data), 
                      type="quantiles", quantiles=quantiles)$predictions
 ## now more computational...
-pred.pix$vme_dens = vme.rfd1[,2]
+pred.pix1$vme_dens = vme.rfd1[,2]
 ## s.d. of the prediction error:
-pred.pix$vme_dens_var = (vme.rfd1[,3]-vme.rfd1[,1])/2
-str(pred.pix@data)
+pred.pix1$vme_dens_var = (vme.rfd1[,3]-vme.rfd1[,1])/2
+str(pred.pix1@data)
 ```
 
 # visualize
 ```{r qrf-sic97-maps, echo=FALSE, fig.width=9, fig.cap="Predictions and prediction errors for the SIC97 data set."}
 par(mfrow=c(1,2), oma=c(0,0,0,0.5), mar=c(0,0,1.5,1))
-plot(raster(pred.pix["vme_dens"]), col=leg, 
+plot(raster(pred.pix1["vme_dens"]), col=leg, 
      main="Random Forest (RF)", axes=FALSE, box=FALSE)
 points(resp_spat, pch="+")
-plot(raster(pred.pix["vme_dens_var"]), col=rev(bpy.colors()), 
+plot(raster(pred.pix1["vme_dens_var"]), col=rev(bpy.colors()), 
      main="Random Forest (RF) prediction error", axes=FALSE, box=FALSE)
 points(resp_spat, pch="+")
 ```
