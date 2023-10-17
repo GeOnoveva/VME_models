@@ -1,5 +1,5 @@
 ---
-title: "R Notebook"
+title: "Calculate niche overlap between indicators of same VME"
 output: html_notebook
 ---
 # Libraries
@@ -42,7 +42,7 @@ for (i in 1:length(sp)){
   threshold[i] <- (data %>% filter(taxon==sp[i]) %>% pull(density) %>% sort %>%  quantile(., c(.01, .05)))[perc]
 }
 
-thresholdt <- data.frame(cbind(sp, threshold))
+thresholdt <- data.frame(sp=sp, threshold=as.numeric(threshold))
 thresholdt
 ```
 
@@ -188,20 +188,17 @@ namesToDrop <- findCorrelation(cor(dfr, use="pairwise.complete.obs"), cutoff = 0
 namesToDrop <- c(namesToDrop, names(which(zv)))
 
 data_extract_merged_reduced_new <- data_extract_merged_reduced %>%
-  select(-na.omit(match(namesToDrop, colnames(data_extract_merged_reduced))))
+  dplyr::select(-na.omit(match(namesToDrop, colnames(data_extract_merged_reduced))))
 data_extract_merged_reduced_new
 ```
 
-# Identify species with too few observations
-IN PROGRESS
-```{r}
-few <- c( "Phakellia ventilabrum", "Polymastia grimaldii", "Tetilla sp."
-        ) 
-```
 
 ## Calculate niche overlap
 ```{r}
 d<-data_extract_merged_reduced_new
+
+# Identify species with too few observations
+few <- names(which(table(d$taxon)<dim(d)[2]))
 
 d <- d %>% filter(!taxon%in%few)
 
@@ -243,7 +240,7 @@ coex
 ```{r}
 result <- cbind(rowMeans(data.frame(coex), na.rm=TRUE), colMeans(data.frame(coex), na.rm=TRUE)) %>%
   data.frame %>%
-  arrange(X1)
+  arrange(X2)
 result
 ```
 # find the most "indicative" indicators
