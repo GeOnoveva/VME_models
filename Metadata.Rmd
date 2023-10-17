@@ -17,6 +17,7 @@ remove <- c("Mycale lingua", "Phakellia sp.", "Axinellidae", "Axinella infundibu
 indicators <- taxonary$Reference_List[which(taxonary$VME_Burgos_etal_2020==vme)]
 indicators <- indicators[-which(indicators%in%remove)]
 indicators
+
 ```
 
 Here is the summary for the model for vme 
@@ -25,3 +26,12 @@ Here is the summary for the model for vme
 vme
 ```
 
+With indicators
+```{r}
+indicators
+```
+
+with selected variables
+```{r}
+selvar
+```
