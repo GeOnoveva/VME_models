@@ -66,7 +66,7 @@ sample_info <- sample_info %>% rename(video.line=VL, section=SampID2, mean.latit
 respw <- resp %>% mutate(video.line=sub("_.*", "", SampID))
 
 respw <- respw %>% group_by(video.line) %>%
-  summarize(mean_rich = mean(tot_rich), mean_dens = mean(tot_dens), sd_dens = sd(tot_dens)) %>%
+  summarize(mean_rich = mean(tot_rich), mean_dens = mean(tot_dens), sd_dens = sd(vmeind_density)) %>%
   mutate(video.line = as.integer(video.line))
 
 head(respw)
