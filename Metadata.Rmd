@@ -4,19 +4,284 @@ date: "`r Sys.Date()`"
 output: pdf_document
 ---
 
-# Introduction
-
+# Pre-run everything
+Eventually make part of loop
 ```{r}
-library(readxl)
-Data <- "G:/R_projects/VH_MarVid/Data" # when running from Server
-# Taxonary
-taxonary <- read_xlsx(file.path(Data,"Taxonary.xlsx"), sheet = 1) # needs to be closed
 # set vme
 vme <- "Hard bottom sponge aggregations"
 remove <- c("Mycale lingua", "Phakellia sp.", "Axinellidae", "Axinella infundibuliformis")
 indicators <- taxonary$Reference_List[which(taxonary$VME_Burgos_etal_2020==vme)]
 indicators <- indicators[-which(indicators%in%remove)]
-indicators
+
+# derive response
+resp1 <- data %>% group_by(SampID) %>%
+summarize(tot_rich = length(SampID), tot_dens = sum(density))
+resp2 <- data %>% filter(taxon%in%indicators) %>%
+group_by(SampID) %>%
+summarize(vmeind_density = sum(density))
+resp <- left_join(resp1,resp2) %>% mutate(vmeind_density=replace_na(vmeind_density,0))
+
+# calculate standard deviation of indicator density at whole video line level
+respw <- resp %>% mutate(video.line=sub("_.*", "", SampID))
+respw <- respw %>% group_by(video.line) %>%
+summarize(mean_rich = mean(tot_rich), mean_dens = mean(tot_dens), sd_dens = sd(tot_dens)) %>%
+mutate(video.line = as.integer(video.line))
+
+# spatialize response
+resp_spat1 <- resp %>% mutate(mean_long=as.numeric(pull(
+dplyr::filter(data.frame(lookup(SampID,dplyr::select(sample_info, c(SampID, mean.longitude)), missing = NULL)),
+!duplicated(data.frame(qdapTools::lookup(SampID,dplyr::select(sample_info, c(SampID, mean.longitude)), missing = NULL)))
+))),
+mean_lat=as.numeric(pull(
+dplyr::filter(data.frame(lookup(SampID,dplyr::select(sample_info, c(SampID, mean.latitude)), missing = NULL)),
+!duplicated(data.frame(qdapTools::lookup(SampID,dplyr::select(sample_info, c(SampID, mean.latitude)), missing = NULL)))
+)))) %>%
+filter(!is.na(mean_long))
+resp_spat <- SpatialPointsDataFrame(dplyr::select(resp_spat1, c(mean_long, mean_lat)), dplyr::select(resp_spat1, c(SampID,tot_rich, tot_dens, vmeind_density)))
+#%>% utmize
+
+# make resp have the same number of rows as resp_spat:
+resp <- resp %>% filter(SampID%in%resp_spat@data$SampID)
+
+# spatialize mean and standard deviation of response
+resp_spat1 <- respw %>% mutate(mean_long=as.numeric(pull(
+dplyr::filter(data.frame(lookup(video.line,dplyr::select(tab_station, c(sample_no, lon_mid_dec)), missing = NULL))))),
+mean_lat=as.numeric(pull(
+dplyr::filter(data.frame(lookup(video.line,dplyr::select(tab_station, c(sample_no, lat_mid_dec)), missing = NULL)))))) %>%
+dplyr::filter(!is.na(mean_long)) %>% rename(vmeind_density = mean_dens)
+coords <- coordinates(dplyr::select(resp_spat1, c(mean_long, mean_lat)))
+resp_spat_vl <- SpatialPointsDataFrame(coords, dplyr::select(resp_spat1, c(video.line,mean_rich, vmeind_density, sd_dens))) %>%
+utmize
+
+# make resp have the same number of rows as resp_spat:
+respw <- respw %>% filter(video.line%in%resp_spat_vl@data$video.line)
+stdev <- respw
+
+# read environmental matrix
+e <- read.csv(file.path(savepath, "e.csv"))
+e <- cbind(e,sample_info)
+
+# create complete, but clean data frame
+v <- left_join(resp,data.frame(e), by="SampID")
+v <- v %>% left_join(stdev, by="video.line") %>% 
+dplyr::select(
+SampID,
+tot_rich,
+tot_dens,
+vmeind_density,
+mean_dens,
+mean_rich,
+sd_dens,
+bathy,
+BO22_carbonphytoltmax_bdmean,
+BO22_carbonphytoltmax_ss,
+BO22_carbonphytoltmin_bdmean,
+BO22_carbonphytoltmin_ss,
+BO22_carbonphytomean_bdmean,
+BO22_carbonphytomean_ss,
+BO22_carbonphytorange_bdmean,
+BO22_carbonphytorange_ss,
+BO22_chloltmin_bdmean,
+BO22_chlomean_ss,
+BO22_dissoxltmax_bdmean,
+BO22_dissoxrange_bdmean,
+BO22_icecovermean_ss,
+BO22_icethickltmin_ss,
+BO22_ironltmax_bdmean,
+BO22_ironrange_bdmean,
+BO22_lightbotmean_bdmean,
+BO22_nitrateltmin_bdmean,
+BO22_phosphateltmax_bdmean,
+BO22_phosphaterange_bdmean,
+BO22_ppltmin_bdmean,
+BO22_ppmean_ss,
+BO22_silicateltmax_bdmean,
+BO22_silicaterange_bdmean,
+BO22_chloltmax_bdmean,
+BO22_chloltmax_ss,
+BO22_chloltmin_ss,
+BO22_chlomean_bdmean,
+BO22_chlorange_bdmean,
+BO22_chlorange_ss,
+BO22_dissoxltmin_bdmean,
+BO22_dissoxmean_bdmean,
+BO22_icecoverltmax_ss,
+BO22_icecoverltmin_ss,
+BO22_icecoverrange_ss,
+BO22_icethickltmax_ss,
+BO22_icethickmean_ss,
+BO22_icethickrange_ss,
+BO22_ironltmin_bdmean,
+BO22_ironmean_bdmean,
+BO22_lightbotltmax_bdmean,
+BO22_lightbotltmin_bdmean,
+BO22_lightbotrange_bdmean,
+BO22_nitrateltmax_bdmean,
+BO22_nitratemean_bdmean,
+BO22_nitraterange_bdmean,
+BO22_phosphateltmin_bdmean,
+BO22_phosphatemean_bdmean,
+BO22_ppltmax_bdmean,
+BO22_ppltmax_ss,
+BO22_ppltmin_ss,
+BO22_ppmean_bdmean,
+BO22_pprange_bdmean,
+BO22_pprange_ss,
+BO22_silicateltmin_bdmean,
+BO22_silicatemean_bdmean,
+CDirmax_Robinson,
+CDirmean_Robinson,
+CDirmin_Robinson,
+CDirsd_Robinson,
+CSpdmax_Robinson,
+CSpdmean_Robinson,
+CSpdmin_Robinson,
+CSpdsd_Robinson,
+MLDmax_Robinson,
+MLDmean_Robinson,
+MLDmin_Robinson,
+MLDsd_Robinson,
+MS_biogeo05_dist_shore_5m,
+Smax_Robinson,
+Smean_Robinson,
+Smin_Robinson,
+Ssd_Robinson,
+Tmax_Robinson,
+Tmean_Robinson,
+Tmin_Robinson,
+Tsd_Robinson,
+Umax_Robinson,
+Umean_Robinson,
+Umin_Robinson,
+Usd_Robinson,
+Vmax_Robinson,
+Vmean_Robinson,
+Vmin_Robinson,
+Vsd_Robinson,
+cobB,
+diffME3,
+diffME9,
+gravel,
+landscape,
+msr1_mag,
+msr5_mag,
+mud,
+rock,
+salt_max,
+salt_mean,
+salt_min,
+salt_std,
+sand,
+sedclass,
+seddan,
+sedmil,
+slope3,
+slope9,
+spd_max,
+spd_mean,
+spd_min,
+spd_std,
+temp_max,
+temp_mean,
+temp_min,
+temp_std,
+u_bott_mean,
+v_bott_mean
+) %>%
+mutate_at(vars(  landscape, sedclass, seddan, sedmil    ), factor) %>%
+ filter(complete.cases(.))
+
+# remove randomly chosen absences (half of them)
+z <- sum(v$vmeind_density==0)
+id <- which(v$vmeind_density==0)
+v <- v %>% filter(!SampID%in%sample(v$SampID[id], z/3))
+
+# run the RFE algorithm (variable selection)
+library(doParallel)
+cl <- makeCluster(detectCores(), type='PSOCK')
+registerDoParallel(cl)
+control <- rfeControl(functions=rfFuncs, method="cv", number=10)
+results <- rfe(v[,8:121], v[,4], sizes=c(1:113), rfeControl=control)
+selvar <- predictors(results)
+
+all_names <- paste(#c(names(resp.dist0),
+selvar, collapse="+")
+fmla0 <- as.formula(paste("vmeind_density ~ ",
+all_names))
+
+# fine tune mtry
+cl <- makeCluster(detectCores(), type='PSOCK')
+registerDoParallel(cl)
+control <- trainControl(method="repeatedcv", number=10, repeats=3, search="grid")
+set.seed(1)
+tunegrid <- expand.grid(.mtry=c(1:length(selvar)))
+rf_gridsearch <- train(fmla0, data=v, method="qrf", metric="Rsquared", tuneGrid=tunegrid, trControl=control)
+print(rf_gridsearch)
+mtry=rf_gridsearch$bestTune
+
+# train m1
+m1 <- ranger(formula = fmla0,
+data = v,
+mtry=pull(mtry),
+min.node.size=2,
+sample.fraction=0.9930754,
+num.trees=50,
+importance = "impurity",
+seed=1,
+quantreg=TRUE,
+respect.unordered.factors = "partition"
+)
+
+# train m2 (with case weights)
+m2 <- ranger(formula = fmla0,
+data = v,
+mtry=pull(mtry),
+min.node.size=2,
+sample.fraction=0.9930754,
+num.trees=250,
+importance = "impurity",
+seed=1,
+quantreg=TRUE,
+respect.unordered.factors = "partition",
+case.weights = 1/cut(v$sd_dens, breaks = getJenksBreaks(v$sd_dens, 6),# 5 strata (jenks breaks)
+include.lowest = TRUE,
+labels = FALSE)
+)
+
+# split data ad train m3
+n<-3 # n classes to stratify the response variable into
+keep=0.1 # proportion of observations in the low density class that will be treated normally
+p=0.5 # overall proportion of the dataset that should be used for testing the model
+
+video.line <- as.character(lookup(v$SampID, dplyr::select(sample_info, section, video.line), sample_info$video.line))
+v_test <- stratisplit(v, n, keep, p, as.factor(video.line))[[1]]
+v_train <- stratisplit(v, n, keep, p, as.factor(video.line))[[2]]
+
+m3 <- ranger(formula = fmla0,
+data = v_train,
+mtry=pull(mtry),
+min.node.size=2,
+sample.fraction=0.9930754,
+num.trees=50,
+importance = "impurity",
+seed=1,
+quantreg=TRUE,
+respect.unordered.factors = "partition"#,
+#case.weights = as.integer(1/(v$sd_dens^2))
+)
+
+# predict with m3
+vme.qrf2 <- predict(m3,  v_test,
+type="quantiles", quantiles=quantiles)$predictions
+v_test$vme.qrf2pr = vme.qrf2[,2]
+v_test$vme.qrf2var = (vme.qrf2[,3]-vme.qrf2[,1])/2
+
+# test m3
+predicted <- v_test$vme.qrf2pr
+observed <- v_test %>%
+dplyr::select(vmeind_density)
+vecv <- vecv(pull(observed),pull(data.frame(unlist(predicted)))) # variance explained by cross-validation, conservative estimate to report
+ccc <- ccc_vec(pull(observed),predicted)
 
 ```
 
