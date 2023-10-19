@@ -57,7 +57,10 @@ cl <- makeCluster(detectCores(), type='PSOCK')
 registerDoParallel(cl)
 control <- rfeControl(functions=rfFuncs, method="cv", number=10)
 # run the RFE algorithm
-results <- rfe(v[,8:121], v[,4], sizes=c(1:113), rfeControl=control)
+a=which(colnames(v)=="bathy")
+b=dim(v)[2]
+c=which(colnames(v)=="vmeind_density")
+results <- rfe(v[,a:b], pull(v[,c]), sizes=c(1:(b-a)), rfeControl=control)
 # chosen features
 selvar <- predictors(results)
 selvar
