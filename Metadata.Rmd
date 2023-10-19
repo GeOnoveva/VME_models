@@ -7,6 +7,9 @@ output: pdf_document
 # Pre-run everything
 Eventually make part of loop
 ```{r}
+# taxonary
+taxonary <- read_xlsx(file.path(Data,"Taxonary.xlsx"), sheet = 1) # needs to be closed
+
 # set vme
 vme <- "Hard bottom sponge aggregations"
 remove <- c("Mycale lingua", "Phakellia sp.", "Axinellidae", "Axinella infundibuliformis")
