@@ -53,11 +53,11 @@ points(resp_spat, pch="+")
 
 # save outputs
 ```{r}
-writeGDAL(pred.pix["vme_dens"],
+writeGDAL(pred.pix1["vme_dens"],
           fname = file.path(outpath, paste(vme,"minus", paste(remove, collapse=", "), "pred.tif")),
           options = c("COMPRESS=DEFLATE"))
 
-writeGDAL(pred.pix["vme_dens_var"],
+writeGDAL(pred.pix1["vme_dens_var"],
           fname = file.path(outpath, paste(vme,"minus", paste(remove, collapse=", "), "pred var.tif")),
           options = c("COMPRESS=DEFLATE"))
 
