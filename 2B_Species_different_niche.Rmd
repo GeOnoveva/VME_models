@@ -12,9 +12,9 @@ library(corrplot)
 
 # Inputs
 ```{r}
-vme <- "Hard bottom sponge aggregations"
+vme <- "Shallow sea pen communities"
 sp = taxonary %>% filter(VME_Burgos_etal_2020==vme) %>% dplyr::select(Reference_List) %>% pull
-e <- read.csv(file.path(savepath, "e.csv"))
+#e <- read.csv(file.path(savepath, "e.csv"))
 # data, from fake Marvid report script
 
 # Parameters
@@ -182,7 +182,7 @@ zv <- apply(df, 2, function(x) length(unique(x)) == 1)
 dfr <- df[, !zv]
 
 # identify highly colinear
-correlationMatrix <- cor(dfr[,1:n],use="complete.obs")
+correlationMatrix <- cor(dfr[,1:dim(dfr)[2]],use="complete.obs")
 namesToDrop <- findCorrelation(cor(dfr, use="pairwise.complete.obs"), cutoff = 0.8, names=TRUE)
 
 namesToDrop <- c(namesToDrop, names(which(zv)))
@@ -215,7 +215,7 @@ d$taxon<- as.factor(as.character(d$taxon))
 # Visualize it
 ```{r}
 #var = "bathy" doesn't work??
-p <- ggplot(d, aes(x=CDirsd_Robinson, color = taxon)) + 
+p <- ggplot(d, aes(x=BO22_chloltmax_ss, color = taxon)) + 
   geom_density()
 p
 ```
@@ -237,6 +237,8 @@ over.mean <- apply(over.stat, c(1:2,4), mean)*100
 coex<-round(over.mean, 2)[,,1] # for alpha=95%
 coex
 ```
+
+# result
 ```{r}
 result <- cbind(rowMeans(data.frame(coex), na.rm=TRUE), colMeans(data.frame(coex), na.rm=TRUE)) %>%
   data.frame %>%
