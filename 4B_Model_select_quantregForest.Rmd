@@ -198,6 +198,7 @@ ccc
 ```
 # Save outputs
 ```{r}
-saveRDS(m3, file = file.path(outpath, paste(vme, "model.rda" )))
+
+saveRDS(m3, file = file.path(outpath,paste(vme,"minus", paste(substr(remove, 1,7), collapse=", "), "model.rda" )))
 ```
 
