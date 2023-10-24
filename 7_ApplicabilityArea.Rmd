@@ -6,17 +6,61 @@ output: html_notebook
 # Intro
 Inputs: pred brick ("pred"), final model ("model")
 
+# Inputs
+```{r}
+load(file.path(savepath,"1_Predictors_out.RData"))
+
+# re-generate v_test and v_train
+v <- read.csv(file.path(savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "v.csv", collapse=" ")))
+v <- v %>% 
+      mutate_at(vars(  landscape, sedclass, seddan, sedmil    ), factor)
+data_split <- read.csv(file.path(outpath, paste(vme,"minus", paste(substr(remove, 1,7), collapse=", "), "data split.csv")))
+v_train <- v %>% left_join(filter(data_split, data_split$set=="train")) %>% filter(!is.na(set))
+
+# points
+e <- read.csv(file.path(savepath, "e.csv"))
+pts <- filter(e, SampID%in%v_train$SampID)
+```
+
 # Libraries
 ```{r}
 library(CAST)
+library(raster)
+library(terra)
+library(dplyr)
+library(caret)
 ```
 # Area of applicability
 ```{r}
-aoa <- aoa(pred, model)
+df <- e %>% dplyr::select(-c(1,119:123)) %>% # sample ID and other metadata
+  filter(complete.cases(.))
+
+# identify zero variance predictors
+zv <- apply(df, 2, function(x) length(unique(x)) == 1)
+dfr <- df[, !zv]
+
+# identify highly colinear
+correlationMatrix <- cor(dfr[,1:dim(dfr)[2]],use="complete.obs")
+namesToDrop <- findCorrelation(cor(dfr, use="pairwise.complete.obs"), cutoff = 0.8, names=TRUE)
+
+namesToDrop <- c(namesToDrop, names(which(zv)))
+
+variables <- df %>%
+  dplyr::select(-na.omit(match(namesToDrop, colnames(df)))) %>%
+  names
+
+
+
+
 ```
 
+# AOA
+```{r}
+aoa <- aoa(pred, train=pts, variables=variables)
+```
 
-# Quantile regression for uncertainty estimation
+# Literaure:
+
 Packages and tutorials:
 https://cran.r-project.org/web/packages/quantregForest/quantregForest.pdf
 https://www.randomforestsrc.org/articles/getstarted.html
@@ -24,6 +68,4 @@ https://www.randomforestsrc.org/articles/getstarted.html
 Scientific articles:
 https://www.sciencedirect.com/science/article/pii/S1364815221001821
 
-```{r}
 
-```
