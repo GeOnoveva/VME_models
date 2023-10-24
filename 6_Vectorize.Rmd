@@ -10,11 +10,31 @@ outputs:
 
 # Libraries
 ```{r}
+library(terra)
+library(dplyr)
 library(spatialEco)
+
 ```
+
+# Inputs
+```{r}
+distribution <- rast(file.path(outpath, paste(vme,"minus", paste(remove, collapse=", "), "pred.tif")))
+error <- rast(file.path(outpath, paste(vme,"minus", paste(remove, collapse=", "), "pred var.tif")))
+
+# Substract
+distribution[error>quantile(values(error, na.rm=TRUE))[4]]<-NA
+```
+
+# Threshold
+```{r}
+val <- values(distribution, na.rm=TRUE) %>% data.frame %>% pull
+th <- getJenksBreaks(val, 1)
+```
+
 
 # Vectorize
 ```{r}
-th=50
-pol <- threspol(th, pc, min.area, max.hole)
+mna <- 800*800
+mxh <- 800*800
+pol <- threspol(th, raster(distribution), min.area, max.hole)
 ```
