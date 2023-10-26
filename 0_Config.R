@@ -125,17 +125,18 @@ stratisplit <- function (x, n, keep, p, video.line) {
 ## function to polygonize the high density predicted areas
 
 threspol <- function(thresvalue, raster, min.area, max.hole){
-  require(SpatialEco, raster, smoothr, units)
+  #require(SpatialEco, raster, smoothr, units, sf)
   rcl <- matrix(data = c(0,thresvalue,thresvalue,max(values(raster), na.rm =TRUE),0,1), nrow=2)
   rec <- reclassify(raster, rcl, include.lowest = TRUE)
   pol <- rasterToPolygons(rec, fun=function(x){x==1}, dissolve = TRUE)
-  pol <- as(spatialEco::explode(pol), "Spatial")
+  #pol <- as(spatialEco::explode(pol), "Spatial")
+  pol<-sf::st_cast(as(pol, "sf"))
+  pol<- as(pol, "Spatial")
   pol$area_sqkm <- area(pol) / 1000000
   pol <- pol[pol$area_sqkm>min.area,]
   area_thresh <- units::set_units(max.hole, km^2)
   pol <- smoothr::fill_holes(pol, threshold = area_thresh)
   pol <- smoothr::smooth(pol, method = "ksmooth")
-  pol_dens <- pol
   return(pol)
 }
 
