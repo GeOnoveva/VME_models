@@ -12,7 +12,8 @@ outputs:
 ```{r}
 library(terra)
 library(dplyr)
-library(spatialEco)
+#library(spatialEco)
+library(Ckmeans.1d.dp)
 ```
 
 # Inputs
@@ -26,18 +27,25 @@ distribution[errorr>quantile(values(errorr, na.rm=TRUE))[4]]<-NA
 
 # Threshold
 ```{r}
-val <- values(distribution, na.rm=TRUE) %>% data.frame %>% pull
-th <- getJenksBreaks(val, 1)
+#val <- values(distribution, na.rm=TRUE) %>% data.frame %>% pull
+#th <- getJenksBreaks(val, 1)
+
+# discret<-data.frame( class=Ckmeans.1d.dp(val, k=2)$cluster, value=val)
+# th <- max(discret$value[which(discret$class==1)])
+
+th<-Ckmeans.1d.dp(val, k=2)$centers[2]
 ```
 
 # Vectorize
 ```{r}
-mna <- 800*800
-mxh <- 800*800
-pol <- threspol(th, raster(distribution), min.area, max.hole)
+mna <- 8000*8000
+mxh <- 8000*800
+pol <- threspol(th, raster(distribution), mna, mxh)
 ```
 
 # Save outputs
 ```{r}
 terra::writeRaster(distribution, file.path(outpath, paste(vme,"minus", paste(remove, collapse=", "), "pred cert.tif")), filetype = "GTiff", overwrite = TRUE)
+
+writeOGR(pol, outpath, paste(vme,"minus", paste(remove, collapse=", "), "polygon"), driver="ESRI Shapefile")
 ```
