@@ -1,11 +1,11 @@
 ---
-title: "Metadata (aka Produktark)"
+title: "Produktark: `r cat(paste(vme, "Hot Spots"))`
 author: "Genoveva Gonzalez Mirelis"
 date: "2023-10-27"
 output: pdf_document
 code_folding: "hide"
 ---
-
+ 
 ```{r echo=FALSE}
 # libraries
 library(ranger)
@@ -58,7 +58,7 @@ ccc <- ccc_vec(pull(observed),predicted)
 ```
 
 # Description
-This vector dataset shows the predicted "hot spots" for the Vulnerable Marine Ecosystem referred to as:
+This vector dataset shows the "hot spots" (high predicted density areas) for the Vulnerable Marine Ecosystem referred to as:
 ```{r}
 vme
 ```
@@ -89,6 +89,24 @@ Therefore, this VME is defined by occurrence of the following indicators:
 indicators
 ```
 
+# Goal and usage
+The goal is to highlight areas which may be subject to special management requirements due to the expected high density of VME indicators, i.e., presence of a VME.
+
+# Owner and contact information
+Havforskningsinstituttet
+Fagekspert: Genoveva Gonzalez Mirelis: <genoveva@hi.no>
+Datateknisk: Kjell Bakkeplass: kjell.bakkeplass@hi.no>
+
+# Resolution/Scale
+```{r}
+paste("1:", sprintf("%.0f",mna*2000))
+```
+
+# Coverage
+The coverage of this dataset is the entire MAREANO area as of 2020.
+
+# Sources and method
+
 with model
 ```{r}
 m
@@ -103,3 +121,11 @@ and
 ccc
 ```
 
+# Updating
+
+# Deliverable
+## Format
+## Projection
+## Restrictions
+
+Links
