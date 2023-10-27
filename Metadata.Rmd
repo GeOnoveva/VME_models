@@ -1,24 +1,38 @@
 ---
-title: "R Notebook"
-output: html_notebook
+title: "Metadata (aka Produktark)"
+author: "Genoveva Gonzalez Mirelis"
+date: "2023-10-27"
+output: pdf_document
+code_folding: "hide"
 ---
 
-# Load the working environment
-```{r}
+```{r echo=FALSE}
+# libraries
 library(ranger)
 library(spm)
 library(yardstick)
+library(readxl)
+library(dplyr)
+library(tinytex)
+
+# paths
+Data <- "G:/R_projects/VH_MarVid/Data"
+outpath <- "G:/R_projects/VH_MarVid/Results"
+savepath <- "G:/R_projects/VH_MarVid/Intermediate_objects"
+
+# quantiles
+quantiles = c((1-.682)/2, 0.5, 1-(1-.682)/2)
 
 # taxonary
 taxonary <- read_xlsx(file.path(Data,"Taxonary.xlsx"), sheet = 1) # needs to be closed
 
-# set vme
+# vme and indicators
 vme <- "Hard bottom sponge aggregations"
 remove <- c("Mycale lingua", "Phakellia sp.", "Axinellidae", "Axinella infundibuliformis")
 indicators <- taxonary$Reference_List[which(taxonary$VME_Burgos_etal_2020==vme)]
 indicators <- indicators[-which(indicators%in%remove)]
 
-# read model
+# model
 m <- readRDS(file.path(outpath,paste(vme,"minus", paste(substr(remove, 1,7), collapse=", "), "model.rda" )))
 
 # re-generate v_test and v_train
@@ -41,16 +55,36 @@ observed <- v_test %>%
 dplyr::select(vmeind_density)
 vecv <- vecv(pull(observed),pull(data.frame(unlist(predicted))))
 ccc <- ccc_vec(pull(observed),predicted)
-
 ```
 
-Here is the summary for the model for vme 
-
+# Description
+This vector dataset shows the predicted "hot spots" for the Vulnerable Marine Ecosystem referred to as:
 ```{r}
 vme
 ```
+The definition for this VME followed
 
-With indicators
+@book{buhl2019vulnerable,
+  title={Vulnerable marine ecosystems (VMEs): Coral and sponge VMEs in Arctic and sub-Arctic waters--Distribution and threats},
+  author={Buhl-Mortensen, Lene and Burgos, Julian Mariano and Steingrund, Petur and Buhl-Mortensen, P{\aa}l and {\'O}lafsd{\'o}ttir, Steinunn H and Ragnarsson, Stef{\'a}n {\'A}},
+  volume={2019519},
+  year={2019},
+  publisher={Nordic Council of Ministers}
+}
+
+ and also
+ 
+ @article{burgos2020predicting,
+  title={Predicting the distribution of indicator taxa of vulnerable marine ecosystems in the Arctic and sub-arctic waters of the Nordic Seas},
+  author={Burgos, Julian M and Buhl-Mortensen, Lene and Buhl-Mortensen, P{\aa}l and {\'O}lafsd{\'o}ttir, Steinunn H and Steingrund, Petur and Ragnarsson, Stef{\'a}n {\'A} and Skagseth, {\O}ystein},
+  journal={Frontiers in Marine Science},
+  volume={7},
+  pages={131},
+  year={2020},
+  publisher={Frontiers Media SA}
+}
+
+Therefore, this VME is defined by occurrence of the following indicators:
 ```{r}
 indicators
 ```
