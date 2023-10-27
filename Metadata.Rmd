@@ -90,7 +90,7 @@ indicators
 ```
 
 # Goal and usage
-The goal is to highlight areas which may be subject to special management requirements due to the expected high density of VME indicators, i.e., presence of a VME.
+The goal is to highlight specific areas which may be subject to special management requirements due to the expected high density of VME indicators, i.e., the potential presence of a VME (cite Baco Taylor?).
 
 # Owner and contact information
 Havforskningsinstituttet
@@ -103,9 +103,10 @@ paste("1:", sprintf("%.0f",mna*2000))
 ```
 
 # Coverage
-The coverage of this dataset is the entire MAREANO area as of 2020.
+The coverage of this dataset is the entire MAREANO area as of 2020. It is the same as the latest biotope map, shown here: 
 
 # Sources and method
+
 
 with model
 ```{r}
