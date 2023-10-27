@@ -14,6 +14,7 @@ library(yardstick)
 library(readxl)
 library(dplyr)
 library(tinytex)
+library(knitr)
 
 # paths
 Data <- "G:/R_projects/VH_MarVid/Data"
@@ -103,10 +104,25 @@ paste("1:", sprintf("%.0f",mna*2000))
 ```
 
 # Coverage
-The coverage of this dataset is the entire MAREANO area as of 2020. It is the same as the latest biotope map, shown here: 
+The coverage of this dataset is the entire MAREANO area as of 2020. It is the same as the biotope map which was published in 2022, shown here: (mareano biotoper dekningskart). The available number of video lines for this area is 2228, which amount to 6031 200-m samples.
 
 # Sources and method
+This polygon dataset was generated in two main steps: (1) a model of VME indicator density was trained and subsequently used for predicting density of all VME indicators throughout the entire area (2) the continuous surface thus generated was binned into two classes using the univariate version of the kmeans algorithm. A brief overview is provided here.
 
+## Modelling
+Training data was extracted from MarVid, summarized as follows:
+```{r}
+summ_tr <- data.frame("Training"=dim(v_train)[1],
+                      "Testing"=dim(v_test)[1])
+#kable(
+  summ_tr
+#  )
+```
+```{r}
+hist(v$vmeind_density)
+```
+
+## Vectorization
 
 with model
 ```{r}
