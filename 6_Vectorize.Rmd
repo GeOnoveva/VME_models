@@ -18,8 +18,8 @@ library(Ckmeans.1d.dp)
 
 # Inputs
 ```{r}
-distribution <- rast(file.path(outpath, paste(vme,"minus", paste(remove, collapse=", "), "pred.tif")))
-errorr <- rast(file.path(outpath, paste(vme,"minus", paste(remove, collapse=", "), "pred var.tif")))
+distribution <- rast(file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "), "pred.tif")))
+errorr <- rast(file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "), "pred var.tif")))
 
 # Substract
 distribution[errorr>quantile(values(errorr, na.rm=TRUE))[4]]<-NA
@@ -27,13 +27,14 @@ distribution[errorr>quantile(values(errorr, na.rm=TRUE))[4]]<-NA
 
 # Threshold
 ```{r}
-#val <- values(distribution, na.rm=TRUE) %>% data.frame %>% pull
+val <- values(distribution, na.rm=TRUE) %>% data.frame %>% pull
 #th <- getJenksBreaks(val, 1)
 
 # discret<-data.frame( class=Ckmeans.1d.dp(val, k=2)$cluster, value=val)
 # th <- max(discret$value[which(discret$class==1)])
 
 th<-Ckmeans.1d.dp(val, k=2)$centers[2]
+th
 ```
 
 # Vectorize
