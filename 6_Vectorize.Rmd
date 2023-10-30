@@ -22,7 +22,7 @@ distribution <- rast(file.path(savepath, paste(vme,"minus", paste(remove, collap
 errorr <- rast(file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "), "pred var.tif")))
 
 # Substract
-distribution[errorr>quantile(values(errorr, na.rm=TRUE))[4]]<-NA
+distribution[errorr>quantile(values(errorr, na.rm=TRUE), 0.9)]<-NA
 ```
 
 # Threshold
