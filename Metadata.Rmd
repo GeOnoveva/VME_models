@@ -1,11 +1,11 @@
 ---
-title: "Produktark:"
-author: "Genoveva Gonzalez Mirelis"
-date: "2023-10-27"
-output: pdf_document
+author: "Havforskningsinstituttet"
+date: "`r format(Sys.Date())`"
+output: word_document
+bibliography: references.bib
 ---
- 
-```{r echo=FALSE}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 # libraries
 library(ranger)
 library(spm)
@@ -14,11 +14,13 @@ library(readxl)
 library(dplyr)
 library(tinytex)
 library(knitr)
+library(Ckmeans.1d.dp)
+library(terra)
 
 # paths
-Data <- "G:/R_projects/VH_MarVid/Data"
-outpath <- "G:/R_projects/VH_MarVid/Results"
-savepath <- "G:/R_projects/VH_MarVid/Intermediate_objects"
+Data <- "~/R_projects/VH_MarVid/Data"
+outpath <- "~/R_projects/VH_MarVid/Results"
+savepath <- "~/R_projects/VH_MarVid/Intermediate_objects"
 
 # quantiles
 quantiles = c((1-.682)/2, 0.5, 1-(1-.682)/2)
@@ -56,37 +58,28 @@ observed <- v_test %>%
 dplyr::select(vmeind_density)
 vecv <- vecv(pull(observed),pull(data.frame(unlist(predicted))))
 ccc <- ccc_vec(pull(observed),predicted)
+
+# threshold
+distribution <- rast(file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "), "pred.tif")))
+errorr <- rast(file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "), "pred var.tif")))
+distribution[errorr>quantile(values(errorr, na.rm=TRUE), 0.9)]<-NA
+val <- values(distribution, na.rm=TRUE) %>% data.frame %>% pull
+th<- Ckmeans.1d.dp(val, k=2)$centers[2]
 ```
+
+---
+title: "Produktark: `r vme`"
+---
+
 
 # Description
 This vector dataset shows the "hot spots" (high predicted density areas) for the Vulnerable Marine Ecosystem referred to as:
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 vme
 ```
-The definition for this VME followed
 
-@book{buhl2019vulnerable,
-  title={Vulnerable marine ecosystems (VMEs): Coral and sponge VMEs in Arctic and sub-Arctic waters--Distribution and threats},
-  author={Buhl-Mortensen, Lene and Burgos, Julian Mariano and Steingrund, Petur and Buhl-Mortensen, P{\aa}l and {\'O}lafsd{\'o}ttir, Steinunn H and Ragnarsson, Stef{\'a}n {\'A}},
-  volume={2019519},
-  year={2019},
-  publisher={Nordic Council of Ministers}
-}
-
- and also
- 
- @article{burgos2020predicting,
-  title={Predicting the distribution of indicator taxa of vulnerable marine ecosystems in the Arctic and sub-arctic waters of the Nordic Seas},
-  author={Burgos, Julian M and Buhl-Mortensen, Lene and Buhl-Mortensen, P{\aa}l and {\'O}lafsd{\'o}ttir, Steinunn H and Steingrund, Petur and Ragnarsson, Stef{\'a}n {\'A} and Skagseth, {\O}ystein},
-  journal={Frontiers in Marine Science},
-  volume={7},
-  pages={131},
-  year={2020},
-  publisher={Frontiers Media SA}
-}
-
-Therefore, this VME is defined by occurrence of the following indicators:
-```{r}
+The definition for this VME followed @buhl2019vulnerable and @burgos2020predicting. Therefore, this VME is defined by occurrence of the following indicators:
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 indicators
 ```
 
@@ -96,10 +89,10 @@ The goal is to highlight specific areas which may be subject to special manageme
 # Owner and contact information
 Havforskningsinstituttet
 Fagekspert: Genoveva Gonzalez Mirelis: <genoveva@hi.no>
-Datateknisk: Kjell Bakkeplass: kjell.bakkeplass@hi.no>
+Datateknisk: Kjell Bakkeplass: <kjell.bakkeplass@hi.no>
 
 # Resolution/Scale
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 mna<-8000*8000
 paste("1:", sprintf("%.0f",mna*2000))
 ```
@@ -112,33 +105,38 @@ This polygon dataset was generated in two main steps: (1) a model of VME indicat
 
 ## Modelling
 Training data was extracted from MarVid, summarized as follows:
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 summ_tr <- data.frame("Training"=dim(v_train)[1],
                       "Testing"=dim(v_test)[1])
 #kable(
   summ_tr
 #  )
 ```
-```{r}
+
+The variable was distributed as follows
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 hist(v$vmeind_density)
 ```
 
-## Vectorization
-
 with model
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 m
 ```
 
 with evaluation
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 vecv
 ```
 and
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ccc
 ```
 
+## Vectorization
+The threshold used was:
+```{r}
+th
+```
 # Updating
 
 # Deliverable
@@ -146,4 +144,6 @@ ccc
 ## Projection
 ## Restrictions
 
-Links
+## Links
+
+## References
