@@ -1,9 +1,8 @@
 ---
-title: "Produktark: `r cat(paste(vme, "Hot Spots"))`
+title: "Produktark:"
 author: "Genoveva Gonzalez Mirelis"
 date: "2023-10-27"
 output: pdf_document
-code_folding: "hide"
 ---
  
 ```{r echo=FALSE}
@@ -29,9 +28,10 @@ taxonary <- read_xlsx(file.path(Data,"Taxonary.xlsx"), sheet = 1) # needs to be 
 
 # vme and indicators
 vme <- "Hard bottom sponge aggregations"
-remove <- c("Mycale lingua", "Phakellia sp.", "Axinellidae", "Axinella infundibuliformis")
+remove=""
+#remove <- c("Mycale lingua", "Phakellia sp.", "Axinellidae", "Axinella infundibuliformis")
 indicators <- taxonary$Reference_List[which(taxonary$VME_Burgos_etal_2020==vme)]
-indicators <- indicators[-which(indicators%in%remove)]
+#indicators <- indicators[-which(indicators%in%remove)]
 
 # model
 m <- readRDS(file.path(outpath,paste(vme,"minus", paste(substr(remove, 1,7), collapse=", "), "model.rda" )))
@@ -100,6 +100,7 @@ Datateknisk: Kjell Bakkeplass: kjell.bakkeplass@hi.no>
 
 # Resolution/Scale
 ```{r}
+mna<-8000*8000
 paste("1:", sprintf("%.0f",mna*2000))
 ```
 
