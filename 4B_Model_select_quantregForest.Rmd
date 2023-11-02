@@ -20,6 +20,7 @@ library(DescTools)
 library(doParallel)
 #library(doMC) # unix only
 library(yardstick)
+library(BAMMtools)
 
 quantiles = c((1-.682)/2, 0.5, 1-(1-.682)/2)
 remove=""
