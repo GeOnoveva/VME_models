@@ -27,7 +27,7 @@ sp
 # Filter data
 ```{r}
 # obtain only rows of interest
-data_extract <- data %>% filter(taxon%in%sp) %>% left_join(e,by = join_by(SampID == section)) # unexpected many-to-many relationships found!!!
+data_extract <- data %>% filter(taxon%in%sp) %>% left_join(e,by = join_by(SampID == section))
 hist(log(data_extract$density[which(data_extract$taxon=="Antho dichotoma")]))
 ```
 
@@ -253,7 +253,20 @@ New idea: the larger the value in the second column, the more generalist the spe
 rogue <- filter(result, X2<toler) %>% row.names(.)
 rogue
 ```
-
+# plot the co-occurrence matrix
+```{r}
+data_extract_merged_binned <-  data_extract_merged %>% mutate(presence=case_when(density>threshold ~ 1,
+                                                                                 density<=threshold ~ 0)) %>%
+  dplyr::select(taxon,          
+         SampID,
+         presence)
+         
+         
+matrix <- pivot_wider(data_extract_merged_binned, id_cols=SampID, values_from = presence, names_from=taxon, values_fill = 0)
+matrix<-matrix %>% filter(!is.na(SampID))
+M<-ecospat.co_occurrences (data=matrix)
+corrplot(M, order="AOE")
+```
 
 
 
