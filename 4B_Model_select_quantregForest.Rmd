@@ -61,7 +61,7 @@ control <- rfeControl(functions=rfFuncs, method="cv", number=10)
 a=which(colnames(v)=="bathy")
 b=which(colnames(v)=="v_bott_mean")
 c=which(colnames(v)=="vmeind_density")
-results <- rfe(v[,a:b], pull(v[,c]), sizes=c(1:(b-a)), rfeControl=control)
+results <- rfe(v[,a:b], v[,c], sizes=c(1:(b-a)), rfeControl=control)
 # chosen features
 selvar <- predictors(results)
 selvar
