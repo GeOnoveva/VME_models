@@ -18,9 +18,9 @@ library(Ckmeans.1d.dp)
 library(terra)
 
 # paths
-Data <- "~/R_projects/VH_MarVid/Data"
-outpath <- "~/R_projects/VH_MarVid/Results"
-savepath <- "~/R_projects/VH_MarVid/Intermediate_objects"
+Data <- "G:/R_projects/VH_MarVid/Data"
+outpath <- "G:/R_projects/VH_MarVid/Results"
+savepath <- "G:/R_projects/VH_MarVid/Intermediate_objects"
 
 # quantiles
 quantiles = c((1-.682)/2, 0.5, 1-(1-.682)/2)
