@@ -51,6 +51,7 @@ only needed if generating spatial variables!!
 #load(file.path(savepath,"1_Predictors_out.RData"))
 pred.pix <- readRDS(file.path(savepath,"pred.rds"))
 pred.pix1 <- subset(pred.pix, complete.cases(pred.pix@data))
+pred.pix1@data <- pred.pix1@data %>% mutate_at(vars(  landscape, sedclass, seddan, sedmil    ), factor)
 ```
 
 # select environmental variables
