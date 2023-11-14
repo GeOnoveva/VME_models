@@ -36,6 +36,7 @@ v <- v %>%
       mutate_at(vars(  landscape, sedclass, seddan, sedmil    ), factor)
 
 v <- v %>% filter(complete.cases(.))
+dim(v)
 ```
 
 # More inputs: resp spat
