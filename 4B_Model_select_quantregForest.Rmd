@@ -49,7 +49,7 @@ resp_spat_vl <- readRDS(file.path(savepath, paste(vme,"minus", paste(substr(remo
 # More inputs: pred
 ```{r}
 #load(file.path(savepath,"1_Predictors_out.RData"))
-pred.pix <- readRDS(file.path(savepath,"pred.rds"))
+pred.pix <- readRDS(file.path(savepath,"pred_data/pred.rds"))
 pred.pix1 <- subset(pred.pix, complete.cases(pred.pix@data))
 pred.pix1@data <- pred.pix1@data %>% mutate_at(vars(  landscape, sedclass, seddan, sedmil    ), factor)
 ```
