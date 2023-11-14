@@ -85,16 +85,16 @@ e <- cbind(e,sample_info)
 
 # Save outputs
 ```{r}
-#write.csv(e, "G:\\R_projects\\VH_MarVid\\Intermediate_objects\\e.csv" )
+write.csv(e, "G:\\R_projects\\VH_MarVid\\Intermediate_objects\\pred_data\\e.csv" )
 
 # save whole workspace (writing pred to tif will delete layer names, which is a pain...)
-save.image(file=file.path(savepath, "1_Predictors_out.RData"))
+save.image(file=file.path(savepath, "pred_data/1_Predictors_out.RData"))
 
 # But also write to tiff, who cares
-writeRaster(pred, filename=file.path(savepath,"pred.tif"), options="INTERLEAVE=BAND", overwrite=TRUE)
+writeRaster(pred, filename=file.path(savepath,"pred_data/pred.tif"), options="INTERLEAVE=BAND", overwrite=TRUE)
 
 # write to spatial pixels
-saveRDS(as(pred, "SpatialPixelsDataFrame"), file.path(savepath,"pred.rds"))
+saveRDS(as(pred, "SpatialPixelsDataFrame"), file.path(savepath,"pred_data/pred.rds"))
 ```
 
 
