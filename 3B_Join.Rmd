@@ -8,7 +8,7 @@ output: clean v table
 
 # Inputs
 ```{r}
-e <- read.csv(file.path(savepath, "e.csv"))
+e <- read.csv(file.path(savepath, "pred_data/e.csv"))
 resp <- read.csv(file.path(savepath, paste(vme,"minus", paste(substr(remove, 1,7), collapse=", "),"resp new.csv", collapse=" ")))
 stdev <- read.csv(file.path(savepath, paste(vme,"minus", paste(substr(remove, 1,7), collapse=", "),"st_dev_vme_dens.csv")))
 ```
