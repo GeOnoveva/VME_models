@@ -47,7 +47,6 @@ resp_spat_vl <- readRDS(file.path(savepath, paste(vme,"minus", paste(substr(remo
 ```
 
 # More inputs: pred
-only needed if generating spatial variables!!
 ```{r}
 #load(file.path(savepath,"1_Predictors_out.RData"))
 pred.pix <- readRDS(file.path(savepath,"pred.rds"))
