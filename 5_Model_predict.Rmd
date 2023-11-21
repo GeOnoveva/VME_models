@@ -7,7 +7,6 @@ output: html_notebook
 
 This script can be run as soon as environmental layers for new areas are available, i.e. without the MarVid data yet ready. Requires running "1_Predictors" first, and for the names not to change
 
-
 # Libraries
 ```{r}
 library(raster)
@@ -20,11 +19,13 @@ leg = c("#0000ff", "#0028d7", "#0050af", "#007986", "#00a15e", "#00ca35",
 # inputs
 ```{r}
 #if m3 performance was "similar" to m2, use m2 (same parameters, all data)
+m <- m1
+name <- "m1"
 ```
 
 # Select model
 ```{r}
-m <- readRDS(m3, file = file.path(outpath, paste(vme, "model.rda" )))
+#m <- readRDS(m3, file = file.path(outpath, paste(vme, "model.rda" )))
 ```
 
 # Using spatial pixels
@@ -45,21 +46,20 @@ str(pred.pix1@data)
 par(mfrow=c(1,2), oma=c(0,0,0,0.5), mar=c(0,0,1.5,1))
 plot(raster(pred.pix1["vme_dens"]), col=leg, 
      main="Random Forest (RF)", axes=FALSE, box=FALSE)
-points(resp_spat, pch="+")
+#points(resp_spat, pch="+")
 plot(raster(pred.pix1["vme_dens_var"]), col=rev(bpy.colors()), 
      main="Random Forest (RF) prediction error", axes=FALSE, box=FALSE)
-points(resp_spat, pch="+")
+#points(resp_spat, pch="+")
 ```
 
 # save outputs
 ```{r}
 writeGDAL(pred.pix1["vme_dens"],
-          fname = file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "), "pred.tif")),
+          fname = file.path(file.path(outpath, name), paste(vme,"minus", paste(remove, collapse=", "), "pred.tif")),
           options = c("COMPRESS=DEFLATE"))
 
 writeGDAL(pred.pix1["vme_dens_var"],
-          fname = file.path(savepath, paste(vme,"minus", paste(remove, collapse=", "), "pred var.tif")),
+          fname = file.path(file.path(outpath, name), paste(vme,"minus", paste(remove, collapse=", "), "pred var.tif")),
           options = c("COMPRESS=DEFLATE"))
 
 ```
-
