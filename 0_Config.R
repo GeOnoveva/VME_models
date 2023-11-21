@@ -167,6 +167,18 @@ setMethod("buffer.dist", signature(observations = "SpatialPointsDataFrame", pred
   return(s)
 })
 
+## function to approximate local homogeneity
+
+library(datawizard)
+loc_hom <- function(x){
+  require(datawizard)
+  y <- case_when(x>0 ~ 1/(x^2), x==0 ~ NA) 
+  y1 <- case_when(is.na(y) ~ median(y, na.rm=TRUE), .default = y)
+  y2 <- rescale(y1, to = c(1,6))
+  return(y2)
+}
+
+
 ## get data while not on MarVid
 library(dplyr)
 data <- read.csv(file.path(Data,"species_densities.csv"))
