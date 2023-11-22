@@ -476,16 +476,12 @@ m2
 # Split data for model testing
 split the data into two partitions where (1) video lines are kept together and (2) the testing data is biased towards intermediate to high-density observations
 ```{r}
-n<-3 # n classes to stratify the response variable into
-keep=0.25 # proportion of observations in the low density class that will be treated normally
-p=0.5 # overall proportion of the dataset that should be used for testing the model
+p=0.2 # proportion of the core dataset will be used for testing the model (fringe dataset will be 50/50)
 
+split <- stratisplit2(x=v, p=p)
 
-# video.line is single column. extract or lookup from sample info
-video.line <- as.character(lookup(v$SampID, dplyr::select(sample_info, section, video.line), sample_info$video.line))
-
-v_test <- stratisplit(v, n, keep, p, as.factor(video.line))[[1]]
-v_train <- stratisplit(v, n, keep, p, as.factor(video.line))[[2]]
+v_test <- split[[1]]
+v_train <- split[[2]]
 
 rbind(hist(log(v_train$vmeind_density)), hist(log(v_test$vmeind_density)))
 
