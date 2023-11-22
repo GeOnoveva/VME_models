@@ -84,7 +84,7 @@ stratisplit <- function (x, n, keep, p, video.line) {
   keep=0.25
   p=0.3
   video.line=video.line # lookup video line by matching v to sample info on SampID
-  require(BAMMtools, groupdata2, tidyverse)
+  #require(BAMMtools, groupdata2, tidyverse)
   
   # stratification by response
   densclas <- cut(v$vmeind_density, breaks = getJenksBreaks(v$vmeind_density, n+1),# 3 strata (jenks breaks)
@@ -119,6 +119,25 @@ stratisplit <- function (x, n, keep, p, video.line) {
   d4 <- v %>% filter(video.line%in%d3$video.line[which(d3$.partitions==2)])
   v_train = v_split %>% filter(.partitions==1) %>%
     dplyr::select(-which(colnames(.)==".partitions")) %>% rbind(.,d4)
+  return(list(v_test, v_train))
+}
+
+stratisplit2 <- function(x, p){
+  x<-v
+  p=0.2
+  # stratification by response
+  densclas <- cut(v$mean_dens, breaks = getJenksBreaks(v$vmeind_density, n+1),# 3 strata (jenks breaks)
+                  include.lowest = TRUE,
+                  labels = FALSE)
+  v$video.line <- as.factor(sub("_.*", "", v$SampID))
+  core <- v %>% filter(densclas%in%c(2,3))
+  fringe <- v %>% filter(densclas==1)
+  
+  d1 <- partition(core, p=0.2, id_col= "video.line", list_out = FALSE)
+  d2 <- partition(fringe, p=0.5, id_col= "video.line", list_out = FALSE)
+  
+  v_train <- rbind(filter(d1,.partitions==2),filter(d2,.partitions==2))
+  v_test <- rbind(filter(d1,.partitions==1),filter(d2,.partitions==1))
   return(list(v_test, v_train))
 }
 
