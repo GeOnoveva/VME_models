@@ -12,8 +12,9 @@ library(corrplot)
 
 # Inputs
 ```{r}
-vme <- "Shallow sea pen communities"
-sp = taxonary %>% filter(VME_Burgos_etal_2020==vme) %>% dplyr::select(Reference_List) %>% pull
+vme <- "Hard bottom sponge aggregations (1)"
+#sp = taxonary %>% filter(VME_Burgos_etal_2020==vme) %>% dplyr::select(Reference_List) %>% pull
+sp = taxonary %>% filter(VME_BuhlMortensen_etal_2023==vme) %>% dplyr::select(Reference_List) %>% pull
 #e <- read.csv(file.path(savepath, "e.csv"))
 # data, from fake Marvid report script
 
@@ -51,7 +52,7 @@ and select columns
 ```{r}
 data_extract_merged <-merge(data_extract,thresholdt,by.x="taxon",by.y="sp",all.x=TRUE)
 data_extract_merged_reduced <- data_extract_merged %>% filter(density>threshold) %>%
-  select(taxon,          
+  dplyr::select(taxon,          
          bathy,                        
          BO22_carbonphytoltmax_bdmean,
          BO22_carbonphytoltmax_ss,
@@ -202,7 +203,7 @@ few <- names(which(table(d$taxon)<dim(d)[2]))
 
 d <- d %>% filter(!taxon%in%few)
 
-d <- d %>% select(-c(  landscape, sedclass, seddan, sedmil, #factor variables
+d <- d %>% dplyr::select(-c(  landscape, sedclass, seddan, sedmil, #factor variables
                        BO22_icecovermean_ss,
                        BO22_lightbotltmax_bdmean,
                        BO22_ppltmin_bdmean,
@@ -215,7 +216,7 @@ d$taxon<- as.factor(as.character(d$taxon))
 # Visualize it
 ```{r}
 #var = "bathy" doesn't work??
-p <- ggplot(d, aes(x=BO22_chloltmax_ss, color = taxon)) + 
+p <- ggplot(d, aes(x=mud, color = taxon)) + 
   geom_density()
 p
 ```
