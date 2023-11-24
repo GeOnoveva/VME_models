@@ -1,21 +1,32 @@
 ---
-title: "Biological composition of points"
+title: "Whole workflow"
 output: html_notebook
 ---
 
 # Intro
-Inputs:  (1) MarVid report (aka "species_abundance.csv") (in downloads folder, or use copy from Data folder)
-(2) Taxonary (on HI onedrive folder, or use copy from Data folder) (3) e
-Workflow: edit the vme of interest
-Outputs: (1) response data (aka "resp") as a simple dataframe. Includes the density of all vme indicators for the selected vme as well as total richness and total abundance.
+
 
 # Libraries
 ```{r}
-library(dplyr)
 #install_github("trinker/qdapTools")
+library(BAMMtools)
+library(caret)
+library(DescTools)
+library(doParallel)
+library(dplyr)
+library(groupdata2)
 library(qdapTools)
+library(quantregForest)
+library(ranger)
+library(raster)
 library(readxl)
-library(tidyr)
+library(rgdal)
+library(RPostgreSQL)
+library(spm)
+library(tidyverse)
+library(yardstick)
+library(parallel)
+library(doParallel)
 ```
 
 # Load data
@@ -57,7 +68,7 @@ Or are they within the same biotope, at least? Need to answer yes to one of thes
 ```{r}
 # set vme
 vme <- "Hard bottom sponge aggregations (1)"
-remove <- "nothing"
+remove <- "Axinellidae"
 indicators <- taxonary$Reference_List[which(taxonary$VME_BuhlMortensen_etal_2023==vme)]
 #indicators <- indicators[-which(indicators%in%remove)]
 indicators
@@ -91,14 +102,6 @@ rm(resp1, resp2)
 write.csv(resp, file.path(savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "resp.csv", collapse=" ")))
 ```
 
-# Libraries
-```{r}
-library(dplyr)
-library(rgdal)
-library(raster)
-library(qdapTools)
-library(RPostgreSQL)
-```
 ## Get sample info
 ### If Marvid runing use this:
 ```{python}
@@ -189,7 +192,7 @@ coords <- coordinates(dplyr::select(resp_spat1, c(mean_long, mean_lat)))
 resp_spat_vl <- SpatialPointsDataFrame(coords, dplyr::select(resp_spat1, c(video.line,mean_rich, vmeind_density, sd_dens))) %>%
                        utmize
 
-writeOGR(resp_spat_vl, savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "),  "resp_spat_vl"), driver = "ESRI Shapefile", overwrite_layer = TRUE)
+#writeOGR(resp_spat_vl, savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "),  "resp_spat_vl"), driver = "ESRI Shapefile", overwrite_layer = TRUE)
 
 # make resp have the same number of rows as resp_spat:
 
@@ -352,23 +355,6 @@ write.csv(dplyr::select(v,
 			   ), file.path(savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "v.csv", collapse=" ")), row.names = FALSE)
 ```
 
-# Libraries etc
-```{r}
-library(ranger)
-library(groupdata2)
-library(quantregForest)
-library(tidyverse)
-library(rgdal)
-library(caret)
-library(spm)
-library(DescTools)
-library(doParallel)
-#library(doMC) # unix only
-library(yardstick)
-library(BAMMtools)
-
-quantiles = c((1-.682)/2, 0.5, 1-(1-.682)/2)
-```
 
 ```{r}
 v <- v %>% 
@@ -402,17 +388,17 @@ selvar
 
 # add spatial variables
 ```{r}
-resp.dist0 <-buffer.dist(resp_spat_vl["vmeind_density"], 
-                                 pred.pix[1], as.factor(1:nrow(resp_spat_vl))) 
-
-ov.resp = over(resp_spat["vmeind_density"], resp.dist0)
-
-ov.resp <- over(resp_spat["vmeind_density"], pred.pix[1:2])
-sw.rm = do.call(cbind, list(resp_spat@data["vmeind_density"], ov.resp
-                            , ov.resp
-                            ))
-
-v <- v %>% left_join(sw.rm) %>% filter(complete.cases(.))
+# resp.dist0 <-buffer.dist(resp_spat_vl["vmeind_density"], 
+#                                  pred.pix[1], as.factor(1:nrow(resp_spat_vl))) 
+# 
+# ov.resp = over(resp_spat["vmeind_density"], resp.dist0)
+# 
+# ov.resp <- over(resp_spat["vmeind_density"], pred.pix[1:2])
+# sw.rm = do.call(cbind, list(resp_spat@data["vmeind_density"], ov.resp
+#                             , ov.resp
+#                             ))
+# 
+# v <- v %>% left_join(sw.rm) %>% filter(complete.cases(.))
 ```
 
 # Set model formula
