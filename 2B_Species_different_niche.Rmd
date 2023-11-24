@@ -12,14 +12,14 @@ library(corrplot)
 
 # Inputs
 ```{r}
-vme <- "Hard bottom sponge aggregations (1)"
+vme <- "Soft bottom sponge aggregations (boreal ostur)"
 #sp = taxonary %>% filter(VME_Burgos_etal_2020==vme) %>% dplyr::select(Reference_List) %>% pull
 sp = taxonary %>% filter(VME_BuhlMortensen_etal_2023==vme) %>% dplyr::select(Reference_List) %>% pull
 #e <- read.csv(file.path(savepath, "e.csv"))
 # data, from fake Marvid report script
 
 # Parameters
-perc <- 1 # 1 is 1st percentile, 2 is 5th percentile
+perc <- 2 # 1 is 1st percentile, 2 is 5th percentile
 nsamples <- 10000
 toler <- 10
 sp
@@ -29,7 +29,7 @@ sp
 ```{r}
 # obtain only rows of interest
 data_extract <- data %>% filter(taxon%in%sp) %>% left_join(e,by = join_by(SampID == section))
-hist(log(data_extract$density[which(data_extract$taxon=="Antho dichotoma")]))
+#hist(log(data_extract$density[which(data_extract$taxon=="Antho dichotoma")]))
 ```
 
 # Define the density threshold for each species
@@ -215,10 +215,16 @@ d$taxon<- as.factor(as.character(d$taxon))
 
 # Visualize it
 ```{r}
-#var = "bathy" doesn't work??
-p <- ggplot(d, aes(x=mud, color = taxon)) + 
-  geom_density()
-p
+plot_fun <- function(x) {
+  ggplot(data = d, aes(x = .data[[x]], color = taxon, show.legend = FALSE)) +
+    geom_density()
+}
+
+cols <- names(d)[!names(d) %in% c("taxon")]
+names(cols) <- cols
+
+gg<-lapply(cols, plot_fun)
+gg
 ```
 
 # Calculate niche overlap
