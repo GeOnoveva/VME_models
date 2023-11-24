@@ -122,18 +122,18 @@ stratisplit <- function (x, n, keep, p, video.line) {
   return(list(v_test, v_train))
 }
 
-stratisplit2 <- function(x, p){
-  x<-v
-  p=0.2
+stratisplit2 <- function(v, pr){
+  #x<-v
+  #pr=0.9
   # stratification by response
-  densclas <- cut(v$mean_dens, breaks = getJenksBreaks(v$vmeind_density, n+1),# 3 strata (jenks breaks)
+  densclas <- cut(v$mean_dens, breaks = getJenksBreaks(v$mean_dens, 4),# 3 strata (jenks breaks)
                   include.lowest = TRUE,
                   labels = FALSE)
   v$video.line <- as.factor(sub("_.*", "", v$SampID))
   core <- v %>% filter(densclas%in%c(2,3))
   fringe <- v %>% filter(densclas==1)
   
-  d1 <- partition(core, p=0.2, id_col= "video.line", list_out = FALSE)
+  d1 <- partition(core, p=pr, id_col= "video.line", list_out = FALSE)
   d2 <- partition(fringe, p=0.5, id_col= "video.line", list_out = FALSE)
   
   v_train <- rbind(filter(d1,.partitions==2),filter(d2,.partitions==2))
