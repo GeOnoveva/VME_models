@@ -193,7 +193,7 @@ loc_hom <- function(x){
   require(datawizard)
   y <- case_when(x>0 ~ 1/(x^2), x==0 ~ NA) 
   y1 <- case_when(is.na(y) ~ median(y, na.rm=TRUE), .default = y)
-  y2 <- rescale(y1, to = c(1,6))
+  y2 <- datawizard::rescale(y1, to = c(1,6))
   return(y2)
 }
 
