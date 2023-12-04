@@ -514,7 +514,6 @@ ccc
 ```
 # Save outputs
 ```{r}
-
 saveRDS(m3, file = file.path(outpath,paste(vme,"minus", paste(substr(remove, 1,7), collapse=", "), "model.rda" )))
 write.csv(data.frame(SampID=c(as.character(v_test$SampID), as.character(v_train$SampID)), set=c(rep("test",length(v_test$SampID)),
                                                                                                 rep("train", length(v_train$SampID)))),
