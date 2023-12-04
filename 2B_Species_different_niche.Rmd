@@ -5,16 +5,18 @@ output: html_notebook
 # Libraries
 ```{r}
 library(dplyr)
+library(tidyr)
 library(caret)
 library(nicheROVER)
 library(corrplot)
+library(ecospat)
 ```
 
 # Inputs
 ```{r}
-vme <- "Soft bottom sponge aggregations (boreal ostur)"
-#sp = taxonary %>% filter(VME_Burgos_etal_2020==vme) %>% dplyr::select(Reference_List) %>% pull
-sp = taxonary %>% filter(VME_BuhlMortensen_etal_2023==vme) %>% dplyr::select(Reference_List) %>% pull
+vme <-  "Hard bottom gorgonian gardens"
+sp = taxonary %>% filter(VME_Burgos_etal_2020==vme) %>% dplyr::select(Reference_List) %>% pull
+#sp = taxonary %>% filter(VME_BuhlMortensen_etal_2023==vme) %>% dplyr::select(Reference_List) %>% pull
 #e <- read.csv(file.path(savepath, "e.csv"))
 # data, from fake Marvid report script
 
