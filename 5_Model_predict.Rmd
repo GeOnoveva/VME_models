@@ -19,13 +19,15 @@ leg = c("#0000ff", "#0028d7", "#0050af", "#007986", "#00a15e", "#00ca35",
 # inputs
 ```{r}
 #if m3 performance was "similar" to m2, use m2 (same parameters, all data)
-m <- m1
-name <- "m1"
+#m <- m1
+vme <- "Soft bottom sponge aggregations (boreal ostur)"
+name <- "m2"
 ```
 
 # Select model
 ```{r}
-#m <- readRDS(m3, file = file.path(outpath, paste(vme, "model.rda" )))
+m <- readRDS(file = file.path(outpath, paste(paste(vme,"minus", paste(substr(remove, 1,7), collapse=", ")),
+                                             paste0(name, ".rda"))))
 ```
 
 # Using spatial pixels
