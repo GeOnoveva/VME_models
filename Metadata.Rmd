@@ -78,18 +78,21 @@ sample_info <- sample_info %>% rename(video.line=VL, section=SampID2, mean.latit
 e <- cbind(e,sample_info)
 threshold <- vector(mode = "numeric",
                    length = length(sp))
-for (i in 1:length(sp)){
-  threshold[i] <- (data %>% dplyr::filter(taxon==sp[i]) %>% dplyr::pull(density) %>% sort %>% quantile(., c(.01, .05)))[1]
-}
-thresholdt <- data.frame(sp=sp, threshold=as.numeric(threshold))
-data <- read.csv(file.path(Data,"species_densities.csv"))
-data <- data %>% rename(taxon=clean_taxonomy, density = density_n100m2) %>% dplyr::select(SampID, taxon, density)
-data_extract <- data %>% filter(taxon%in%indicators) %>% left_join(e, by = join_by(SampID == section))
-data_extract_merged <-merge(data_extract,thresholdt,by.x="taxon",by.y="sp",all.x=TRUE)
-s <- summarize(group_by(data_extract_merged, taxon), mean=mean(density, na.rm=TRUE),
-                                                     median=median(density, na.rm=TRUE),
-                                                     max=max(density, na.rm=TRUE),
-                                                     count=length(density))
+#for (i in 1:length(sp)){
+#  threshold[i] <- (data %>% dplyr::filter(taxon==sp[i]) %>% dplyr::pull(density) %>% sort %>% quantile(., c(.01, .05)))[1]
+#}
+#thresholdt <- data.frame(sp=sp, threshold=as.numeric(threshold))
+#data <- read.csv(file.path(Data,"species_densities.csv"))
+#data <- data %>% rename(taxon=clean_taxonomy, density = density_n100m2) %>% dplyr::select(SampID, taxon, density)
+#data_extract <- data %>% filter(taxon%in%indicators) %>% left_join(e, by = join_by(SampID == section))
+#data_extract_merged <-merge(data_extract,thresholdt,by.x="taxon",by.y="sp",all.x=TRUE)
+#s <- summarize(group_by(data_extract_merged, taxon), mean=mean(density, na.rm=TRUE),
+#                                                     median=median(density, na.rm=TRUE),
+#                                                     max=max(density, na.rm=TRUE),
+#                                                     count=length(density))
+
+selvar <- read.csv(file.path(savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "selvar.csv")))
+selvar <- pull(selvar)
 ```
 
 ---
@@ -97,7 +100,7 @@ title: "Produktark: `r vme`"
 ---
 
 # Description
-This vector dataset shows the predicted density hot spots for the Vulnerable Marine Ecosystem (VME) known as
+This dataset shows the expected distribution of the Vulnerable Marine Ecosystem (VME) known as
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 vme
 ```
@@ -125,12 +128,16 @@ paste("1:", sprintf("%.0f",mna*2000))
 The coverage of this dataset is the entire MAREANO area as of 2020. It is the same as the biotope map which was published in 2022, shown here: (mareano biotoper dekningskart). The available number of video lines for this area is 2228, which amount to 6031 200-m samples.
 
 # Sources and method
-This polygon dataset was generated in two main steps: (1) a model was trained and subsequently used for predicting density of VME indicators throughout the entire coverage area (2) the continuous surface thus generated was binned into two classes using a univariate kmeans algorithm. A brief overview is provided here.
+This dataset was generated in three main steps:
+(1) a model was trained using observed density extracted from video and various environmental layers (including geology, oceanography, and bathymetry) as predictors
+(2) the model was then used for predicting density of VME indicators throughout the entire coverage area, as well as the 67% prediction interval which is a good estimate for the prediction error
+(2) Both raster datasets thus generated (predicted density, and error) where binned into two categories, and then combined as follows: high density with low error, high density with high error, and low density irrespective of error
+A brief overview is provided here.
 
 ## Modelling
 Training data was extracted from MarVid, summarized as follows:
 ```{r}
-kable(s)
+#kable(s)
 ```
 
 For modelling we used Quantile Regression Forests as applied in @hengl2018, which we used to predict the mean VME indicator density. We also calculated the top and bottom bounds for the expected prediction range and then subtracted pixels where the error was high/range was broad (define better).
