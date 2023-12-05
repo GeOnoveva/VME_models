@@ -29,50 +29,52 @@ quantiles = c((1-.682)/2, 0.5, 1-(1-.682)/2)
 taxonary <- read_xlsx(file.path(Data,"Taxonary.xlsx"), sheet = 1) # needs to be closed
 
 # vme and indicators
-vme <- "Hard bottom sponge aggregations (1)"
+vme <- "Soft bottom sponge aggregations (boreal ostur)"
 remove="nothing"
 #remove <- c("Mycale lingua", "Phakellia sp.", "Axinellidae", "Axinella infundibuliformis")
 indicators <- taxonary$Reference_List[which(taxonary$VME_BuhlMortensen_etal_2023==vme)]
 #indicators <- indicators[-which(indicators%in%remove)]
 
 # model
-m <- readRDS(file.path(outpath,paste(vme,"minus", paste(substr(remove, 1,7), collapse=", "), "m1.rda" )))
+name <-"m2"
+m <- readRDS(file = file.path(outpath, paste(paste(vme,"minus", paste(substr(remove, 1,7), collapse=", ")),
+                                             paste0(name, ".rda"))))
 
 # re-generate v_test and v_train
 v <- read.csv(file.path(savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "v.csv", collapse=" ")))
 v <- v %>% 
       mutate_at(vars(  landscape, sedclass, seddan, sedmil    ), factor)
-data_split <- read.csv(file.path(outpath, paste(vme,"minus", paste(substr(remove, 1,7), collapse=", "), "data split.csv")))
-v_train <- v %>% left_join(filter(data_split, data_split$set=="train")) %>% filter(!is.na(set))
-v_test <- v %>% left_join(filter(data_split, data_split$set=="test")) %>% filter(!is.na(set))
+#data_split <- read.csv(file.path(outpath, paste(vme,"minus", paste(substr(remove, 1,7), collapse=", "), "data split.csv")))
+#v_train <- v %>% left_join(filter(data_split, data_split$set=="train")) %>% filter(!is.na(set))
+#v_test <- v %>% left_join(filter(data_split, data_split$set=="test")) %>% filter(!is.na(set))
 
 # predict with m3
-vme.qrf2 <- predict(m,  v_test,
-type="quantiles", quantiles=quantiles)$predictions
-v_test$vme.qrf2pr = vme.qrf2[,2]
-v_test$vme.qrf2var = (vme.qrf2[,3]-vme.qrf2[,1])/2
-
-# test m3
-predicted <- v_test$vme.qrf2pr
-observed <- v_test %>%
-dplyr::select(vmeind_density)
-vecv <- vecv(pull(observed),pull(data.frame(unlist(predicted))))
-ccc <- ccc_vec(pull(observed),predicted)
+# vme.qrf2 <- predict(m,  v_test,
+# type="quantiles", quantiles=quantiles)$predictions
+# v_test$vme.qrf2pr = vme.qrf2[,2]
+# v_test$vme.qrf2var = (vme.qrf2[,3]-vme.qrf2[,1])/2
+# 
+# # test m3
+# predicted <- v_test$vme.qrf2pr
+# observed <- v_test %>%
+# dplyr::select(vmeind_density)
+# vecv <- vecv(pull(observed),pull(data.frame(unlist(predicted))))
+# ccc <- ccc_vec(pull(observed),predicted)
 
 # threshold
-name<-"m1"
 distribution <- rast(file.path(file.path(outpath, name), paste(vme,"minus", paste(remove, collapse=", "), "pred.tif")))
-errorr <- rast(file.path(file.path(outpath, name), paste(vme,"minus", paste(remove, collapse=", "), "pred var.tif")))
-distribution[errorr>quantile(values(errorr, na.rm=TRUE), 0.9)]<-NA
+error <- rast(file.path(file.path(outpath, name), paste(vme,"minus", paste(remove, collapse=", "), "pred var.tif")))
 val <- values(distribution, na.rm=TRUE) %>% data.frame %>% pull
-th<- Ckmeans.1d.dp(val, k=2)$centers[2]
+th<-Ckmeans.1d.dp(val, k=2)$centers[2]
+val <- values(error, na.rm=TRUE) %>% data.frame %>% pull
+thr<-Ckmeans.1d.dp(val, k=2)$centers[2]
 
 # data summary
 sp<-indicators
 e <- read.csv(file.path(savepath, "pred_data/e.csv"))
 sample_info <- read.csv(file.path(Data,"sample_info.csv"))
 sample_info <- sample_info %>% rename(video.line=VL, section=SampID2, mean.latitude=y_coord, mean.longitude=x_coord) %>%
-  select(video.line, section, mean.latitude, mean.longitude, SampID)
+  dplyr::select(video.line, section, mean.latitude, mean.longitude, SampID)
 e <- cbind(e,sample_info)
 threshold <- vector(mode = "numeric",
                    length = length(sp))
@@ -81,7 +83,7 @@ for (i in 1:length(sp)){
 }
 thresholdt <- data.frame(sp=sp, threshold=as.numeric(threshold))
 data <- read.csv(file.path(Data,"species_densities.csv"))
-data <- data %>% rename(taxon=clean_taxonomy, density = density_n100m2) %>% select(SampID, taxon, density)
+data <- data %>% rename(taxon=clean_taxonomy, density = density_n100m2) %>% dplyr::select(SampID, taxon, density)
 data_extract <- data %>% filter(taxon%in%indicators) %>% left_join(e, by = join_by(SampID == section))
 data_extract_merged <-merge(data_extract,thresholdt,by.x="taxon",by.y="sp",all.x=TRUE)
 s <- summarize(group_by(data_extract_merged, taxon), mean=mean(density, na.rm=TRUE),
@@ -140,29 +142,12 @@ The final model included `r length(selvar)` variables. And the number of trees w
 m$r.squared
 ```
 
-We also calculated Variance Explained by Cross-Validation and the Concordance Correlation Coefficient. For that purpose we split the data as follows:
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-summ_tr <- data.frame("Training"=dim(v_train)[1],
-                      "Testing"=dim(v_test)[1])
-#kable(
-  summ_tr
-#  )
-```
-
-This gave a total Variance Explained (in %) of:
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-vecv
-```
-
-In addition, the Concordance Correlation Coefficient between predictions and observations was (in %):
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-ccc*100
-```
 
 ## Vectorization
 The model output is a raster layer (continuous variable). In order to create a polygon, this raster is reclassified into two classes: low and high. The threshold between the two classes was calculated using a univariate kmeans algorithm. This algorithm classifies values into k classes (in this case two) of similar means. The center for the high cluster was used as a threshold, which was:
 ```{r}
 th
+thr
 ```
 
 # Updating
