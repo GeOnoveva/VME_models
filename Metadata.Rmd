@@ -78,18 +78,18 @@ sample_info <- sample_info %>% rename(video.line=VL, section=SampID2, mean.latit
 e <- cbind(e,sample_info)
 threshold <- vector(mode = "numeric",
                    length = length(sp))
-#for (i in 1:length(sp)){
-#  threshold[i] <- (data %>% dplyr::filter(taxon==sp[i]) %>% dplyr::pull(density) %>% sort %>% quantile(., c(.01, .05)))[1]
-#}
-#thresholdt <- data.frame(sp=sp, threshold=as.numeric(threshold))
-#data <- read.csv(file.path(Data,"species_densities.csv"))
-#data <- data %>% rename(taxon=clean_taxonomy, density = density_n100m2) %>% dplyr::select(SampID, taxon, density)
-#data_extract <- data %>% filter(taxon%in%indicators) %>% left_join(e, by = join_by(SampID == section))
-#data_extract_merged <-merge(data_extract,thresholdt,by.x="taxon",by.y="sp",all.x=TRUE)
-#s <- summarize(group_by(data_extract_merged, taxon), mean=mean(density, na.rm=TRUE),
-#                                                     median=median(density, na.rm=TRUE),
-#                                                     max=max(density, na.rm=TRUE),
-#                                                     count=length(density))
+for (i in 1:length(sp)){
+  threshold[i] <-  quantile(sort(dplyr::pull(dplyr::filter(data, taxon==sp[i]))), c(.01, .05))[1]
+}
+thresholdt <- data.frame(sp=sp, threshold=as.numeric(threshold))
+data <- read.csv(file.path(Data,"species_densities.csv"))
+data <- data %>% rename(taxon=clean_taxonomy, density = density_n100m2) %>% dplyr::select(SampID, taxon, density)
+data_extract <- data %>% filter(taxon%in%indicators) %>% left_join(e, by = join_by(SampID == section))
+data_extract_merged <-merge(data_extract,thresholdt,by.x="taxon",by.y="sp",all.x=TRUE)
+s <- summarize(group_by(data_extract_merged, taxon), mean=mean(density, na.rm=TRUE),
+                                                     median=median(density, na.rm=TRUE),
+                                                     max=max(density, na.rm=TRUE),
+                                                     count=length(density))
 
 selvar <- read.csv(file.path(savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "selvar.csv")))
 selvar <- pull(selvar)
