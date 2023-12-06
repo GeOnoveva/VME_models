@@ -111,7 +111,7 @@ indicators
 ```
 
 # Goal and usage
-The goal of this dataset is to highlight specific areas which may be subject to special management requirements due to the expected high density of VME indicators, i.e., the potential presence of a VME (@bacoTaylor2023).
+The goal of this dataset is to highlight areas which may require special management attention on the grounds of possible high density of VME indicators, i.e., the potential presence of a VME (@bacoTaylor2023). Areas classified as 3 are deemed to have high density of any of the indicator taxa listed above as well as a narrow prediction interval (high certainty). Areas classified as 2 are deemed to have a high density of any of the indicator taxa as well as a wide prediction interval (lower certainty), areas classified as 1 are deemed to have low density of any of the indicator taxa.
 
 # Owner and contact information
 Havforskningsinstituttet
@@ -119,6 +119,7 @@ Fagekspert: Genoveva Gonzalez Mirelis: <genoveva@hi.no>
 Datateknisk: Kjell Bakkeplass: <kjell.bakkeplass@hi.no>
 
 # Resolution/Scale
+The native resolution of the dataset in raster format is 200. The scale of the vectorized version should be as follows:
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 mna<-8000*8000
 paste("1:", sprintf("%.0f",mna*2000))
@@ -129,18 +130,18 @@ The coverage of this dataset is the entire MAREANO area as of 2020. It is the sa
 
 # Sources and method
 This dataset was generated in three main steps:
-(1) a model was trained using observed density extracted from video and various environmental layers (including geology, oceanography, and bathymetry) as predictors
-(2) the model was then used for predicting density of VME indicators throughout the entire coverage area, as well as the 67% prediction interval which is a good estimate for the prediction error
-(2) Both raster datasets thus generated (predicted density, and error) where binned into two categories, and then combined as follows: high density with low error, high density with high error, and low density irrespective of error
+(1) a model was trained using observed density of VME indicators extracted from video, and various environmental layers (including geology, oceanography, and bathymetry) as predictors.
+(2) the model was then used for predicting the density of VME indicators at every cell of a grid covering the entire area, as well as the 67% prediction interval, which is a good estimate for the prediction error
+(2) both raster datasets thus generated (predicted density and prediction error) where binned into two categories each, and then combined as follows: high density with low error, high density with high error, and low density irrespective of error
 A brief overview is provided here.
 
 ## Modelling
-Training data was extracted from MarVid, summarized as follows:
+Training data was extracted from MarVid, and it can be summarized as follows:
 ```{r}
 #kable(s)
 ```
 
-For modelling we used Quantile Regression Forests as applied in @hengl2018, which we used to predict the mean VME indicator density. We also calculated the top and bottom bounds for the expected prediction range and then subtracted pixels where the error was high/range was broad (define better).
+For modelling we used Quantile Regression Forests as applied in @hengl2018, which we used to predict the median VME indicator density, as well as the 67% probability upper and lower limits (i.e., the prediction interval).
 
 Predictor variables were the same as were used in the biotope model published in 2022 ^[https://mareano.no/en/topics/habitats/general-biotope-map/mareano-general-biotopes--2022-update-technical-summary/predicted-distribution-of-general-biotopes-raster-map].
 
@@ -150,12 +151,9 @@ m$r.squared
 ```
 
 
-## Vectorization
-The model output is a raster layer (continuous variable). In order to create a polygon, this raster is reclassified into two classes: low and high. The threshold between the two classes was calculated using a univariate kmeans algorithm. This algorithm classifies values into k classes (in this case two) of similar means. The center for the high cluster was used as a threshold, which was:
-```{r}
-th
-thr
-```
+## Visualization of results
+The model outputs consist of two floating point, raster layers (continuous variables). Both of these layers were classified into two classes, which can be roughly described as low and high. The threshold between the two classes was calculated using a univariate kmeans algorithm. This algorithm classifies values into k classes (in this case two) of similar means. The center for the high cluster was used as a threshold. The threshold for the median density values was `r th` and the threshold for the error layer was `r thr`, both of which are in units of number of colonies per 100 m2.
+
 
 # Updating
 The dataset will be updated according to the MAREANO Activity Plan.
