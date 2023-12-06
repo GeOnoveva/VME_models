@@ -29,7 +29,7 @@ quantiles = c((1-.682)/2, 0.5, 1-(1-.682)/2)
 taxonary <- read_xlsx(file.path(Data,"Taxonary.xlsx"), sheet = 1) # needs to be closed
 
 # vme and indicators
-vme <- "Soft bottom sponge aggregations (boreal ostur)"
+vme <- "Hard bottom sponge aggregations (1)"
 remove="nothing"
 #remove <- c("Mycale lingua", "Phakellia sp.", "Axinellidae", "Axinella infundibuliformis")
 indicators <- taxonary$Reference_List[which(taxonary$VME_BuhlMortensen_etal_2023==vme)]
@@ -78,9 +78,9 @@ sample_info <- sample_info %>% rename(video.line=VL, section=SampID2, mean.latit
 e <- cbind(e,sample_info)
 threshold <- vector(mode = "numeric",
                    length = length(sp))
-for (i in 1:length(sp)){
-  threshold[i] <-  quantile(sort(dplyr::pull(dplyr::filter(data, taxon==sp[i]))), c(.01, .05))[1]
-}
+#for (i in 1:length(sp)){
+#  threshold[i] <-  quantile(sort(dplyr::pull(dplyr::filter(data, taxon==sp[i]))), c(.01, .05))[1]
+#}
 thresholdt <- data.frame(sp=sp, threshold=as.numeric(threshold))
 data <- read.csv(file.path(Data,"species_densities.csv"))
 data <- data %>% rename(taxon=clean_taxonomy, density = density_n100m2) %>% dplyr::select(SampID, taxon, density)
