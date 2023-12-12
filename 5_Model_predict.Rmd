@@ -20,27 +20,43 @@ leg = c("#0000ff", "#0028d7", "#0050af", "#007986", "#00a15e", "#00ca35",
 ```{r}
 #if m3 performance was "similar" to m2, use m2 (same parameters, all data)
 #m <- m1
-vme <- "Soft bottom sponge aggregations (boreal ostur)"
+vme <- "Deep-sea sea pen communities"
+remove <- "nothing"
 name <- "m2"
+v <- read.csv(file.path(savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "v.csv", collapse=" ")))
+# str(v)
+
+v <- v %>% 
+  mutate_at(vars(  landscape, sedclass, seddan, sedmil    ), factor)
+
+v <- v %>% filter(complete.cases(.))
+mtry <- read.csv(file.path(savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "mtry.csv")))
+selvar <- read.csv(file.path(savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "selvar.csv")))
+selvar <- pull(selvar)
+all_names <- paste(#c(names(resp.dist0),
+  selvar, collapse="+")
+fmla0 <- as.formula(paste("vmeind_density ~ ", 
+                          all_names))
 ```
 
 # Select model
 ```{r}
 m <- readRDS(file = file.path(outpath, paste(paste(vme,"minus", paste(substr(remove, 1,7), collapse=", ")),
                                              paste0(name, ".rda"))))
+m
 ```
 
 # Using spatial pixels
 ```{r}
 vme.rfd1 <- predict(m, cbind(
   #resp.dist0@data, 
-  pred.pix1@data), 
+  pred.pix@data), 
                      type="quantiles", quantiles=quantiles)$predictions
 ## now more computational...
-pred.pix1$vme_dens = vme.rfd1[,2]
+pred.pix$vme_dens = vme.rfd1[,2]
 ## s.d. of the prediction error:
-pred.pix1$vme_dens_var = (vme.rfd1[,3]-vme.rfd1[,1])/2
-str(pred.pix1@data)
+pred.pix$vme_dens_var = (vme.rfd1[,3]-vme.rfd1[,1])/2
+str(pred.pix@data)
 ```
 
 # visualize
