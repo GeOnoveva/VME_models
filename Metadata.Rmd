@@ -76,14 +76,14 @@ sample_info <- read.csv(file.path(Data,"sample_info.csv"))
 sample_info <- sample_info %>% rename(video.line=VL, section=SampID2, mean.latitude=y_coord, mean.longitude=x_coord) %>%
   dplyr::select(video.line, section, mean.latitude, mean.longitude, SampID)
 e <- cbind(e,sample_info)
-threshold <- vector(mode = "numeric",
-                   length = length(sp))
-#for (i in 1:length(sp)){
-#  threshold[i] <-  quantile(sort(dplyr::pull(dplyr::filter(data, taxon==sp[i]))), c(.01, .05))[1]
-#}
-thresholdt <- data.frame(sp=sp, threshold=as.numeric(threshold))
 data <- read.csv(file.path(Data,"species_densities.csv"))
 data <- data %>% rename(taxon=clean_taxonomy, density = density_n100m2) %>% dplyr::select(SampID, taxon, density)
+threshold <- vector(mode = "numeric",
+                   length = length(sp))
+for (i in 1:length(sp)){
+  threshold[i] <-  quantile(sort(dplyr::pull(dplyr::filter(data, taxon==sp[i]))), c(.01, .05))[1]
+}
+thresholdt <- data.frame(sp=sp, threshold=as.numeric(threshold))
 data_extract <- data %>% filter(taxon%in%indicators) %>% left_join(e, by = join_by(SampID == section))
 data_extract_merged <-merge(data_extract,thresholdt,by.x="taxon",by.y="sp",all.x=TRUE)
 s <- summarize(group_by(data_extract_merged, taxon), mean=mean(density, na.rm=TRUE),
@@ -104,14 +104,15 @@ This dataset shows the expected distribution of the Vulnerable Marine Ecosystem 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 vme
 ```
+In Norwegian this is called: "Svampsamfunn".
 
-The definition for this VME followed @buhl2019vulnerable and @burgos2020predicting. Therefore, this VME is defined by occurrence of the following indicators:
+The definition for this VME followed @buhl2019vulnerable and @burgos2020predicting. This VME is defined by occurrence of the following indicators:
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 indicators
 ```
 
 # Goal and usage
-The goal of this dataset is to highlight areas which may require special management attention on the grounds of possible high density of VME indicators, i.e., the potential presence of a VME (@bacoTaylor2023). Areas classified as 3 are deemed to have high density of any of the indicator taxa listed above as well as a narrow prediction interval (high certainty). Areas classified as 2 are deemed to have a high density of any of the indicator taxa as well as a wide prediction interval (lower certainty), areas classified as 1 are deemed to have low density of any of the indicator taxa.
+The goal of this dataset is to highlight areas which may require special management attention on the grounds of possible high density of VME indicators, i.e., the potential presence of a VME (@bacoTaylor2023). Areas classified as 3 are deemed to have high density of any of the indicator taxa listed above as well as a narrow prediction interval (high certainty). This zone warrants strict management action. Areas classified as 2 are deemed to have a high density of any of the indicator taxa as well as a wide prediction interval (lower certainty, or higher variability of the density within the area). This zone requires the collection of additional data for a more robust assessment. Areas classified as 1 are deemed to have low density of any of the indicator taxa.
 
 # Owner and contact information
 Havforskningsinstituttet
@@ -121,24 +122,30 @@ Datateknisk: Kjell Bakkeplass: <kjell.bakkeplass@hi.no>
 # Resolution/Scale
 The native resolution of the dataset in raster format is 200. The scale of the vectorized version should be as follows:
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-mna<-8000*8000
+mna<-200*200
 paste("1:", sprintf("%.0f",mna*2000))
 ```
 
 # Coverage
-The coverage of this dataset is the entire MAREANO area as of 2020. It is the same as the biotope map which was published in 2022, shown here: (mareano biotoper dekningskart). The available number of video lines for this area is 2228, which amount to 6031 200-m samples.
+The coverage of this dataset is limited by the coverage of the predictor layers used in the model (see below). While the intention was to cover the whole of the MAREANO-multibeamed area as of 2020, the northern limit had to be set at 75&deg;N (instead of 80&deg;N) on account of the layer on bottom light, which finished there.
+
+The available number of video lines for this area is 2228, which amount to 6031 200-m video samples.
 
 # Sources and method
 This dataset was generated in three main steps:
-(1) a model was trained using observed density of VME indicators extracted from video, and various environmental layers (including geology, oceanography, and bathymetry) as predictors.
-(2) the model was then used for predicting the density of VME indicators at every cell of a grid covering the entire area, as well as the 67% prediction interval, which is a good estimate for the prediction error
-(2) both raster datasets thus generated (predicted density and prediction error) where binned into two categories each, and then combined as follows: high density with low error, high density with high error, and low density irrespective of error
+
+(1) A model was trained using observed values of density of VME indicators extracted from video, and various environmental layers (including geology, oceanography, and bathymetry) as predictors.
+
+(2) The model was used to generate a prediction of density of all VME indicators at every cell of a grid covering the entire area (median), as well as the 67% prediction interval, which is known to be an adequate estimate of the prediction error.
+
+(2) Both raster datasets thus generated (median predicted density and prediction error) where binned into two categories each, and then combined as follows: high density with low error, high density with high error, and low density irrespective of error.
+
 A brief overview is provided here.
 
-## Modelling
-Training data was extracted from MarVid, and it can be summarized as follows:
-```{r}
-#kable(s)
+## Model training, and predictions
+Training data was extracted from MarVid. The density data for each taxon is summarized in the following table. Note that all taxa were pulled together prior to modelling such that the model is oblivious of species (taxon) identity.
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+kable(s)
 ```
 
 For modelling we used Quantile Regression Forests as applied in @hengl2018, which we used to predict the median VME indicator density, as well as the 67% probability upper and lower limits (i.e., the prediction interval).
@@ -146,13 +153,28 @@ For modelling we used Quantile Regression Forests as applied in @hengl2018, whic
 Predictor variables were the same as were used in the biotope model published in 2022 ^[https://mareano.no/en/topics/habitats/general-biotope-map/mareano-general-biotopes--2022-update-technical-summary/predicted-distribution-of-general-biotopes-raster-map].
 
 The final model included `r length(selvar)` variables. And the number of trees was `r m$num.trees`. The model was internally evaluated by using the "Out of Bag" procedure and it resulted in the following R^2 value:
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 m$r.squared
 ```
 
+## Model results
+The model outputs consist of two floating point, raster layers (continuous variables), as shown below. These datasets are available on request.
 
-## Visualization of results
-The model outputs consist of two floating point, raster layers (continuous variables). Both of these layers were classified into two classes, which can be roughly described as low and high. The threshold between the two classes was calculated using a univariate kmeans algorithm. This algorithm classifies values into k classes (in this case two) of similar means. The center for the high cluster was used as a threshold. The threshold for the median density values was `r th` and the threshold for the error layer was `r thr`, both of which are in units of number of colonies per 100 m2.
+```{r qrf-sic97-maps, echo=FALSE, fig.width=9, fig.cap="Predictions and prediction errors for the SIC97 data set."}
+leg=c("#0000ff", "#0028d7", "#0050af", "#007986", "#00a15e", "#00ca35", 
+        "#00f20d", "#1aff00", "#43ff00", "#6bff00", "#94ff00", "#bcff00", 
+        "#e5ff00", "#fff200", "#ffca00", "#ffa100", "#ff7900", "#ff5000", "#ff2800", "#ff0000")
+library(sp)
+par(mfrow=c(1,2), oma=c(0,0,0,0.5), mar=c(0,0,1.5,1))
+plot(distribution, col=leg, 
+     main="Random Forest (RF)", axes=FALSE, box=FALSE)
+#points(resp_spat, pch="+")
+plot(error, col=rev(bpy.colors()), 
+     main="Random Forest (RF) prediction error", axes=FALSE, box=FALSE)
+#points(resp_spat, pch="+")
+```
+## Visualization of predictions
+Both of these layers were classified into two classes, roughly low values and high values. The threshold between the two classes was calculated using a univariate kmeans algorithm. This algorithm classifies values into k classes (in this case two) of similar means. The center of the high-values cluster was used as a threshold. The threshold for the median density values was `r th` and the threshold for the error layer was `r thr`, both of which are in units of number of colonies per 100 m2.
 
 
 # Updating
@@ -160,7 +182,7 @@ The dataset will be updated according to the MAREANO Activity Plan.
 
 # Deliverable
 ## Format
-Shapefile (?)
+GeoTiff
 
 ## Projection
 WGS84 UTM 33N
@@ -168,7 +190,7 @@ WGS84 UTM 33N
 ## Restrictions
 License
 
-## Links
+# Links
 The workflow can be downloaded/cloned from the following github repository:
 https://github.com/GeOnoveva/VME_models.git
 
@@ -176,4 +198,4 @@ Information about environmental predictors can be found here:
 https://mareano.no/en/topics/habitats/general-biotope-map/mareano-general-biotopes--2022-update-technical-summary/predicted-distribution-of-general-biotopes-raster-map
 
 
-## References
+# References
