@@ -30,7 +30,11 @@ val <- values(distribution, na.rm=TRUE) %>% data.frame %>% pull
 # discret<-data.frame( class=Ckmeans.1d.dp(val, k=2)$cluster, value=val)
 # th <- max(discret$value[which(discret$class==1)])
 
-th<-Ckmeans.1d.dp(val, k=2)$centers[2]
+ th<-Ckmeans.1d.dp(val, k=2)$centers[1]
+ # th <- Ckmeans.1d.dp(val, k=2)
+ # th <- data.frame(val=val, cl=th$cluster)
+ # th <- th %>% filter(cl==2)
+ # th <- min(th$val)
 th
 ```
 # Threshold for error
@@ -41,15 +45,17 @@ val <- values(error, na.rm=TRUE) %>% data.frame %>% pull
 # discret<-data.frame( class=Ckmeans.1d.dp(val, k=2)$cluster, value=val)
 # th <- max(discret$value[which(discret$class==1)])
 
-thr<-Ckmeans.1d.dp(val, k=2)$centers[2]
+ thr<-Ckmeans.1d.dp(val, k=2)$centers[1]
+ # thr <- Ckmeans.1d.dp(val, k=2)
+ # thr <- data.frame(val=val, cl=thr$cluster)
+ # thr <- thr %>% filter(cl==2)
+ # thr <- min(thr$val)
+
 thr
 ```
 
 # Combine
 ```{r}
-#mna <- 8000*8000
-#mxh <- 8000*800
-
 rcl <- matrix(data = c(0,th,th,max(values(distribution), na.rm =TRUE),1,2), nrow=2)
 rec1 <- rast(raster::reclassify(raster(distribution), rcl, include.lowest = TRUE))
 
@@ -58,12 +64,12 @@ rec2 <- rast(raster::reclassify(raster(error), rcl, include.lowest = TRUE))
 
 combo <- terra::ifel(rec1 == 2 & rec2 == 1, 3, 
        terra::ifel(rec1 == 2 & rec2 == 2 , 2, 1))
-
+plot(combo)
 ```
 
 # Save outputs
 ```{r}
-terra::writeRaster(combo, file.path(file.path(outpath, name), paste(vme,"minus", paste(remove, collapse=", "), "combo.tif")), filetype = "GTiff", overwrite = TRUE)
+terra::writeRaster(combo, file.path(file.path(outpath, name), paste(vme,"minus", paste(remove, collapse=", "), "combo2.tif")), filetype = "GTiff", overwrite = TRUE)
 
 #writeOGR(pol, outpath, paste(vme,"minus", paste(remove, collapse=", "), "polygon"), driver="ESRI Shapefile")
 ```
