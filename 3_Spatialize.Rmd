@@ -4,10 +4,13 @@ output: html_notebook
 ---
 
 # Intro
+Inputs:
+(1) resp (in intermediate folder)
+(2) sample info
 
-inputs: (1) resp (in intermediate folder) (2) sample info
-workflow: make resp into a spatial object and remove samples that lack spatial data; also, summarize density at whole video line level to use later as weight
-outputs: cleaned up resp (only samples with metadata) ("resp new.csv") and local variability of vme density ("st_dev_vme_dens.csv")
+Workflow: make resp into a spatial object and remove samples that lack spatial data; also, summarize density at whole video line level to use later as weight
+
+Outputs: cleaned up resp (only samples with metadata) ("resp new.csv") and local variability of vme density ("st_dev_vme_dens.csv")
 
 # Libraries
 And parameters
