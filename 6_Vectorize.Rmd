@@ -5,7 +5,7 @@ output: html_notebook
 
 # Intro
 
-inputs: pc
+inputs: 
 outputs:
 
 # Libraries
