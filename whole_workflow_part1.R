@@ -1,10 +1,20 @@
-# set vme 1
-vme <- "Deep-sea sea pen communities"
+# Requirements
+## Taxonary
+## data
+## sample info
+## tab station
+## e
+
+# Set up parallel processing
+#cl <- makeCluster(39, type='PSOCK') # leave 25 cores available to other people!
+cl <- makeCluster(detectCores(), type='PSOCK')
+registerDoParallel(cl)
+
+# Set vme
+vme <- "Hard bottom gorgonian gardens"
 remove <- "nothing"
-indicators <- taxonary$Reference_List[which(taxonary$VME_Burgos_etal_2020==vme)]
+indicators <- taxonary$Reference_List[which(taxonary$VME_BuhlMortensen_etal_2023==vme)]
 #indicators <- indicators[-which(indicators%in%remove)]
-indicators <- "Paragorgia arborea"
-vme <- "Paragorgia arborea"
 
 # Filter data by VME indicators
 resp1 <- data %>% group_by(SampID) %>%
@@ -200,15 +210,16 @@ v <- v %>%
   mutate_at(vars(  landscape, sedclass, seddan, sedmil    ), factor)
 v <- v %>% filter(complete.cases(.))
 
-# select environmental variables
-cl <- makeCluster(39, type='PSOCK')
-registerDoParallel(cl)
+# Select environmental variables
 control <- rfeControl(functions=rfFuncs, method="cv", number=10)
-
-# run the RFE algorithm
 a=which(colnames(v)=="bathy")
 b=which(colnames(v)=="v_bott_mean")
 c=which(colnames(v)=="vmeind_density")
+
+# Configure multicore
+registerDoParallel(cl)
+
+# variable selection
 results <- rfe(v[,a:b], v[,c], sizes=c(1:(b-a)), rfeControl=control)
 
 # chosen features
@@ -224,10 +235,6 @@ fmla0 <- as.formula(paste("vmeind_density ~ ",
                           all_names))
 
 # fine tune mtry parameter
-# configure multicore
-#registerDoMC(cores=12)
-cl <- makeCluster(39, type='PSOCK')
-registerDoParallel(cl)
 control <- trainControl(method="repeatedcv", number=10, repeats=3, search="grid")
 set.seed(1)
 tunegrid <- expand.grid(.mtry=c(1:length(selvar)))
