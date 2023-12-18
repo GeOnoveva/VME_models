@@ -3,8 +3,12 @@ title: "R Notebook"
 output: html_notebook
 ---
 # Intro
-inputs: e (from intermediate folder), new resp (from intermediate folder), standard variation of vme density (from intermediate folder)
-output: clean v table
+Inputs:
+(1) environmental data extracted fo points (aka "e") (from intermediate folder)
+(2) new resp (from intermediate folder)
+(3) standard variation of vme density (from intermediate folder)
+
+Output: clean table which contains response and all predictors (aka "v")
 
 # Inputs
 ```{r}
