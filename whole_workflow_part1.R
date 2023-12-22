@@ -11,9 +11,9 @@ cl <- makeCluster(detectCores(), type='PSOCK')
 registerDoParallel(cl)
 
 # Set vme
-vme <- "Hard bottom gorgonian gardens"
+vme <- "Deep-sea sea pen communities"
 remove <- "nothing"
-indicators <- taxonary$Reference_List[which(taxonary$VME_BuhlMortensen_etal_2023==vme)]
+indicators <- taxonary$Reference_List[which(taxonary$VME_Burgos_etal_2020==vme)]
 #indicators <- indicators[-which(indicators%in%remove)]
 
 # Filter data by VME indicators
