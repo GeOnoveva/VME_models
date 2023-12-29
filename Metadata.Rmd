@@ -16,6 +16,8 @@ library(tinytex)
 library(knitr)
 library(Ckmeans.1d.dp)
 library(terra)
+library(raster)
+library(rgdal)
 
 # paths
 Data <- "G:/R_projects/VH_MarVid/Data"
@@ -103,6 +105,21 @@ s <- summarize(group_by(data_extract_merged, taxon), mean=mean(density, na.rm=TR
 
 selvar <- read.csv(file.path(savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "selvar.csv")))
 selvar <- pull(selvar)
+
+rcl <- matrix(data = c(0,th,th,max(values(distribution), na.rm =TRUE),1,2), nrow=2)
+rec1 <- rast(raster::reclassify(raster(distribution), rcl, include.lowest = TRUE))
+rcl <- matrix(data = c(0,thr,thr,max(values(error), na.rm =TRUE),1,2), nrow=2)
+rec2 <- rast(raster::reclassify(raster(error), rcl, include.lowest = TRUE))
+combo <- terra::ifel(rec1 == 2 & rec2 == 1, 3, 
+       terra::ifel(rec1 == 2 & rec2 == 2 , 2, 1))
+
+resp_spat <- readOGR(dsn=savepath , 
+  layer=paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "resp_spat"))
+asses <- data.frame(raster::extract(as.raster(combo),resp_spat, sp=TRUE))
+colnames(asses)[5]<-"Zone"
+asses1 <- asses %>% group_by(Zone) %>%
+  dplyr::summarise(mean=mean(vmeind_density), stdev=sd(vmeind_density), count=length(vmeind_density))
+
 ```
 
 ---
@@ -186,6 +203,12 @@ plot(error, col=rev(bpy.colors()),
 
 ## Step 3: Visualization of predictions
 Both of these layers were classified into two classes, roughly low values and high values. The threshold between the two classes was calculated using a univariate kmeans algorithm. This algorithm classifies values into k classes (in this case two) of similar means. The center of the high-values cluster was used as a threshold. The threshold for the median density values was `r th` and the threshold for the error layer was `r thr`, both of which are in units of number of colonies per 100 m2.
+
+A summary of the observed densities by zone is shown below
+```{r}
+colnames(asses1) <-c("Zone", "Mean density", "Standard deviation of density", "No. subsamples")
+kable(asses1)
+```
 
 
 # Updating
