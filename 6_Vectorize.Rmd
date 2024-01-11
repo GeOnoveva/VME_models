@@ -14,6 +14,7 @@ library(terra)
 library(dplyr)
 #library(spatialEco)
 library(Ckmeans.1d.dp)
+library(vegan)
 ```
 
 # Inputs
@@ -72,4 +73,38 @@ plot(combo)
 terra::writeRaster(combo, file.path(file.path(outpath, name), paste(vme,"minus", paste(remove, collapse=", "), "combo2.tif")), filetype = "GTiff", overwrite = TRUE)
 
 #writeOGR(pol, outpath, paste(vme,"minus", paste(remove, collapse=", "), "polygon"), driver="ESRI Shapefile")
+```
+
+# summarize
+```{r}
+resp_spat <- readOGR(dsn=savepath , 
+                     layer=paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "resp_spat"))
+
+#asses <- data.frame(terra::extract(combo,vect(resp_spat), sp=TRUE))
+asses <- data.frame(raster::extract(raster(combo),resp_spat, sp=TRUE))
+
+colnames(asses)[5]<-"Zone"
+asses1 <- asses %>% group_by(Zone) %>%
+  dplyr::summarise(mean_ind=mean(vmeind_density), stdev_ind=sd(vmeind_density),
+                   #mean_tot_dens=mean(tot_dens, na.rm=TRUE),
+                   #mean_tot_rich=mean(tot_rich),
+                   count=length(vmeind_density))
+```
+
+# permanova of species composition between zones 2 and 3
+```{r}
+data_subset <- data %>% filter(SampID%in%asses$SampID[which(asses$Zone%in%c(2,3))])
+
+data_subset <- data_subset %>% pivot_wider(names_from = taxon, values_from = density, values_fill = 0)
+
+asses_test <- asses %>% filter(Zone%in%c(2,3))
+
+merge <- left_join(asses_test,data_subset)
+
+adonis2(sqrt(merge[,c(9:dim(merge)[2])]) ~ merge[,5], na.rm=TRUE)
+```
+
+# anova of density by zone (between 2 and 3)
+```{r}
+summary(aov(vmnd_dn ~ Zone, data = merge))
 ```
