@@ -31,7 +31,7 @@ quantiles = c((1-.682)/2, 0.5, 1-(1-.682)/2)
 taxonary <- read_xlsx(file.path(Data,"Taxonary.xlsx"), sheet = 1) # needs to be closed
 
 # vme and indicators
-vme <- "Soft bottom sponge aggregations (boreal ostur)"
+vme <- "Deep-sea sea pen communities"
 remove="nothing"
 #remove <- c("Mycale lingua", "Phakellia sp.", "Axinellidae", "Axinella infundibuliformis")
 indicators <- taxonary$Reference_List[which(taxonary$VME_BuhlMortensen_etal_2023==vme)]
@@ -66,19 +66,6 @@ m <- readRDS(file = file.path(outpath, paste(paste(vme,"minus", paste(substr(rem
 # threshold
 distribution <- rast(file.path(file.path(outpath, name), paste(vme,"minus", paste(remove, collapse=", "), "pred.tif")))
 error <- rast(file.path(file.path(outpath, name), paste(vme,"minus", paste(remove, collapse=", "), "pred var.tif")))
-val <- values(distribution, na.rm=TRUE) %>% data.frame %>% pull
-th<-Ckmeans.1d.dp(val, k=2)$centers[2]
-# th <- Ckmeans.1d.dp(val, k=2) # used when patches too small to see otherwise
-# th <- data.frame(val=val, cl=th$cluster)
-# th <- th %>% filter(cl==2)
-# th <- min(th$val)
-
-val <- values(error, na.rm=TRUE) %>% data.frame %>% pull
-thr<-Ckmeans.1d.dp(val, k=2)$centers[2]
-# thr <- Ckmeans.1d.dp(val, k=2)
-# thr <- data.frame(val=val, cl=thr$cluster)
-# thr <- thr %>% filter(cl==2)
-# thr <- min(thr$val)
 
 
 # data summary
@@ -98,27 +85,27 @@ for (i in 1:length(sp)){
 thresholdt <- data.frame(sp=sp, threshold=as.numeric(threshold))
 data_extract <- data %>% filter(taxon%in%indicators) %>% left_join(e, by = join_by(SampID == section))
 data_extract_merged <-merge(data_extract,thresholdt,by.x="taxon",by.y="sp",all.x=TRUE)
-s <- summarize(group_by(data_extract_merged, taxon), mean=mean(density, na.rm=TRUE),
-                                                     median=median(density, na.rm=TRUE),
-                                                     max=max(density, na.rm=TRUE),
-                                                     count=length(density))
+s <- summarize(group_by(data_extract_merged, taxon), mean_density=mean(density, na.rm=TRUE),
+                                                     median_density=median(density, na.rm=TRUE),
+                                                     maximum_density=max(density, na.rm=TRUE),
+                                                     count_of_200-m_samples_where_present=length(density))
 
 selvar <- read.csv(file.path(savepath, paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "selvar.csv")))
 selvar <- pull(selvar)
 
-rcl <- matrix(data = c(0,th,th,max(values(distribution), na.rm =TRUE),1,2), nrow=2)
-rec1 <- rast(raster::reclassify(raster(distribution), rcl, include.lowest = TRUE))
-rcl <- matrix(data = c(0,thr,thr,max(values(error), na.rm =TRUE),1,2), nrow=2)
-rec2 <- rast(raster::reclassify(raster(error), rcl, include.lowest = TRUE))
-combo <- terra::ifel(rec1 == 2 & rec2 == 1, 3, 
-       terra::ifel(rec1 == 2 & rec2 == 2 , 2, 1))
-
-resp_spat <- readOGR(dsn=savepath , 
-  layer=paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "resp_spat"))
-asses <- data.frame(raster::extract(as.raster(combo),resp_spat, sp=TRUE))
-colnames(asses)[5]<-"Zone"
-asses1 <- asses %>% group_by(Zone) %>%
-  dplyr::summarise(mean=mean(vmeind_density), stdev=sd(vmeind_density), count=length(vmeind_density))
+# rcl <- matrix(data = c(0,th,th,max(values(distribution), na.rm =TRUE),1,2), nrow=2)
+# rec1 <- rast(raster::reclassify(raster(distribution), rcl, include.lowest = TRUE))
+# rcl <- matrix(data = c(0,thr,thr,max(values(error), na.rm =TRUE),1,2), nrow=2)
+# rec2 <- rast(raster::reclassify(raster(error), rcl, include.lowest = TRUE))
+# combo <- terra::ifel(rec1 == 2 & rec2 == 1, 3, 
+#        terra::ifel(rec1 == 2 & rec2 == 2 , 2, 1))
+# 
+# resp_spat <- readOGR(dsn=savepath , 
+#   layer=paste(vme, "minus", paste(substr(remove, 1,7), collapse=", "), "resp_spat"))
+# asses <- data.frame(raster::extract(as.raster(combo),resp_spat, sp=TRUE))
+# colnames(asses)[5]<-"Zone"
+# asses1 <- asses %>% group_by(Zone) %>%
+#   dplyr::summarise(mean=mean(vmeind_density), stdev=sd(vmeind_density), count=length(vmeind_density))
 
 ```
 
@@ -131,7 +118,7 @@ This dataset shows the expected distribution of the Vulnerable Marine Ecosystem 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 vme
 ```
-Other names: Svampspikelbunn
+Other names: Umbellula stands
 
 We followed the approach described in @buhl2019vulnerable and @burgos2020predicting. This VME is defined by occurrence of the following indicators:
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -139,7 +126,14 @@ indicators
 ```
 
 # Goal and usage
-The goal of this dataset is to highlight areas which may require special management attention on the grounds of possible high density of VME indicators, i.e., the potential presence of a VME (@bacoTaylor2023). Areas classified as 3 are deemed to have high density of any of the indicator taxa with high certainty. This zone warrants strict management action. Areas classified as 2 are deemed to have a high density of any of the indicator taxa but lower certainty so more density variability should be expected. This zone requires the collection of additional data for a more robust assessment. Areas classified as 1 are deemed to have low density of any of the indicator taxa.
+The goal of this dataset is to highlight areas which may require special management attention on the grounds of a possible high density of VB indicators, i.e., the potential presence of a VME *sensu* @bacoTaylor2023, or similar conservation relevant habitat. The dataset per VB consists of:
+
+-	A raster layer showing the **predicted cumulative density of indicator taxa**, which can be used to identify both general areas of suitable habitat for indicator taxa and to highlight denser hotspots which may be of management interest.
+
+-	A second raster layer is also supplied showing **predictive error**, with areas showing higher values representing areas where the model is less certain about the values it is predicting. This layer can be used to locate areas where additional sampling is recommended to increase certainty but also may highlight areas that are more heterogenous, where more variability should be expected.
+
+We advise that users make use of both layers to inspect their areas of interest. Please contact us if you would like advice or guidance on usage or alternative visualisations.
+
 
 # Owner and contact information
 Havforskningsinstituttet
@@ -147,45 +141,33 @@ Fagekspert: Genoveva Gonzalez Mirelis: <genoveva@hi.no>
 Datateknisk: Kjell Bakkeplass: <kjell.bakkeplass@hi.no>
 
 # Resolution/Scale
-The native resolution of the dataset in raster format is 200. The scale of the vectorized version should be as follows:
+The native resolution of the dataset in raster format is 200 m.
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-mna<-200*200
-paste("1:", sprintf("%.0f",mna*2000))
+#mna<-200*200
+#paste("1:", sprintf("%.0f",mna*2000))
 ```
 
 # Coverage
-The coverage of this dataset was intended to be the MAREANO-multibeamed area as of 2020 but this VME required light at the bottom as a predictor, whose extent is limited. Therefore the northern limit had to be set at 75&deg;N instead of 80&deg;N.
+The coverage of this dataset is the MAREANO-multibeamed area as of 2020.
 
-The available number of video lines for this area is 1860, which amount to 5422 200-m video samples.
+The available number of video lines for this area is 2228, which amounts to 6031 200-m video samples.
 
 # Sources and method
-This dataset was generated in two/three main steps:
+For modelling we used Quantile Regression Forests (QRF) as applied in @hengl2018. While regular Random Forests only give a prediction for the mean value of a target variable, QRF allows you to generate predictions at any desired quantile of a conditional distribution of values for the target variable, thus offering increased flexibility and easy error quantification. A model was trained using observed values of VB indicator density extracted from video, and various environmental layers (including representations of geology, oceanography, and bathymetry) as predictors.
 
-(1) A model was trained using observed values of density of VME indicators extracted from video, and various environmental layers (including geology, oceanography, and bathymetry) as predictors.
+Training data was extracted from the quality controlled MarVid (Mareano Video) database. The density data for each taxon for this VB is summarized in the following table. Note that all taxa densities were summed together prior to modelling such that the model is unaware of species (taxon) identity.
 
-(2) The model was used to generate a prediction of density of all VME indicators at every cell of a grid covering the entire area, as well as the 67% prediction interval, which is known to be an adequate estimate of the prediction error.
-
-(3) Both raster datasets thus generated (namely median predicted density and prediction interval) where binned into two categories each, and then combined to derive three management zones.
-
-A brief overview is provided below.
-
-## Step 1: Model training, and predictions
-Training data was extracted from MarVid. The density data for each taxon is summarized in the following table. Note that all taxa were pulled together prior to modelling such that the model is oblivious of species (taxon) identity.
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 kable(s)
 ```
 
-For modelling we used Quantile Regression Forests as applied in @hengl2018, which we used to predict the median VME indicator density, as well as the 67% probability upper and lower limits (i.e., the prediction interval).
 
-Predictor variables were the same as were used in the biotope model published in 2022 ^[https://mareano.no/en/topics/habitats/general-biotope-map/mareano-general-biotopes--2022-update-technical-summary/predicted-distribution-of-general-biotopes-raster-map].
-
-The final model included `r length(selvar)` variables. And the number of trees was `r m$num.trees`. The model was internally evaluated by using the "Out of Bag" procedure and it resulted in the following R^2 value:
+Concerning predictors, we tested the complete set of 122 predictor variables which were used in the biotope model published in 2022 ^[https://mareano.no/en/topics/habitats/general-biotope-map/mareano-general-biotopes--2022-update-technical-summary/predicted-distribution-of-general-biotopes-raster-map]. The final model retained 98 variables. The number of trees was 500. The model was internally evaluated by using the “Out of Bag” procedure and it resulted in the following R^2 (proportion of variance explained) value:
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 m$r.squared
 ```
+This model was used to generate a median prediction of median density of all relevant VB indicators, at every cell of a grid covering the entire area; that is, a prediction at quantile 0.5. In addition, we extracted the prediction at quantiles 0.159 and 0.841, which give the upper and lower bounds of a 68.27% prediction interval, and according to the “empirical rule” contain all observations that are within one standard deviation of the mean. These bounds were therefore used to compute the error of the predictions.
 
-## Step 2: Model results
-The model outputs consist of two floating point, raster layers (continuous variables), shown below.
 
 ```{r qrf-sic97-maps, echo=FALSE, fig.width=9, fig.cap="Predictions and prediction interval, or error of density of all VME indicators."}
 leg=c("#0000ff", "#0028d7", "#0050af", "#007986", "#00a15e", "#00ca35", 
@@ -201,13 +183,11 @@ plot(error, col=rev(bpy.colors()),
 #points(resp_spat, pch="+")
 ```
 
-## Step 3: Visualization of predictions
-Both of these layers were classified into two classes, roughly low values and high values. The threshold between the two classes was calculated using a univariate kmeans algorithm. This algorithm classifies values into k classes (in this case two) of similar means. The center of the high-values cluster was used as a threshold. The threshold for the median density values was `r th` and the threshold for the error layer was `r thr`, both of which are in units of number of colonies per 100 m2.
 
-A summary of the observed densities by zone is shown below
+
 ```{r}
-colnames(asses1) <-c("Zone", "Mean density", "Standard deviation of density", "No. subsamples")
-kable(asses1)
+#colnames(asses1) <-c("Zone", "Mean density", "Standard deviation of density", "No. subsamples")
+#kable(asses1)
 ```
 
 
